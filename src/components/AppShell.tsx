@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LogOut, Moon, Sun } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/components/ThemeProvider';
+import { useIsNarrow } from '@/components/useMediaQuery';
 
 type AuthStatus = 'loading' | 'authenticated' | 'anonymous';
 
@@ -20,6 +21,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
+  const isNarrow = useIsNarrow();
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [email, setEmail] = useState<string>('');
 
@@ -67,6 +69,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Tandai halaman yang sedang dibuka supaya pengguna tahu posisinya
+  const navLinkStyle = (href: string) => {
+    const active = href === '/' ? pathname === '/' : pathname.startsWith(href);
+    return active ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink;
+  };
+
   const themeToggle = (
     <button
       type="button"
@@ -75,8 +83,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       title={theme === 'dark' ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'}
       aria-label={theme === 'dark' ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'}
     >
-      {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
-      <span>{theme === 'dark' ? 'Terang' : 'Gelap'}</span>
+      {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+      {/* Di layar sempit cukup ikonnya, supaya menu tidak memakan tiga baris */}
+      {!isNarrow && <span>{theme === 'dark' ? 'Terang' : 'Gelap'}</span>}
     </button>
   );
 
@@ -107,12 +116,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </Link>
           <nav style={styles.nav}>
-            <Link href="/" style={styles.navLink}>Dashboard</Link>
-            <Link href="/add" style={styles.navLink}>+ Input Kelas & Feedback</Link>
-            <Link href="/claim" style={styles.navLink}>Ekspor Klaim</Link>
+            <Link href="/" style={navLinkStyle('/')}>Dashboard</Link>
+            <Link href="/add" style={navLinkStyle('/add')}>
+              {isNarrow ? '+ Input' : '+ Input Kelas & Feedback'}
+            </Link>
+            <Link href="/claim" style={navLinkStyle('/claim')}>
+              {isNarrow ? 'Klaim' : 'Ekspor Klaim'}
+            </Link>
             {themeToggle}
             <button type="button" onClick={handleLogout} style={styles.logoutBtn} title={email}>
-              <LogOut size={16} /> Keluar
+              <LogOut size={18} />
+              {!isNarrow && 'Keluar'}
             </button>
           </nav>
         </div>
@@ -218,12 +232,17 @@ const styles = {
   },
   navLink: {
     fontSize: '16px',
-    fontWeight: 500,
+    fontWeight: 600,
     color: 'var(--text-muted)',
     textDecoration: 'none',
-    padding: '6px 12px',
+    padding: '8px 12px',
     borderRadius: 'var(--radius)',
     transition: 'all 0.2s',
+    whiteSpace: 'nowrap' as const,
+  },
+  navLinkActive: {
+    backgroundColor: 'var(--primary-light)',
+    color: 'var(--foreground)',
   },
   logoutBtn: {
     display: 'inline-flex',

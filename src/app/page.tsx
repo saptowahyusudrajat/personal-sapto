@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useTheme, chartColors } from '@/components/ThemeProvider';
+import { useIsNarrow } from '@/components/useMediaQuery';
 import {
   calculateClaimSummary,
   calculateClaimSummaryByMonth,
@@ -77,6 +78,7 @@ interface Session {
 export default function Dashboard() {
   const { theme } = useTheme();
   const colors = chartColors(theme);
+  const isNarrow = useIsNarrow();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -228,6 +230,13 @@ export default function Dashboard() {
   const isPerClassMode = chartRange === 'month';
   const chartData = isPerClassMode ? perClassChartData : monthlyChartData;
 
+  // Jumlah label sumbu X dibatasi sesuai lebar layar. Sebelumnya seluruh label
+  // dipaksa tampil (interval 0) sehingga saling menumpuk di ponsel.
+  const maxAxisLabels = isNarrow ? 5 : 13;
+  const axisInterval = Math.max(0, Math.ceil(chartData.length / maxAxisLabels) - 1);
+  // Nama kelas panjang butuh ruang lebih di bawah grafik saat dimiringkan
+  const axisHeight = isPerClassMode ? (isNarrow ? 96 : 80) : 32;
+
   if (loading) {
     return (
       <div style={styles.loadingContainer}>
@@ -357,9 +366,15 @@ export default function Dashboard() {
               <p style={styles.chartSubtitle}>
                 {isPerClassMode
                   ? 'Satu batang mewakili satu kelas pada bulan tersebut.'
-                  : `Bulan tanpa kelas tetap ditampilkan sebagai 0. Garis putus-putus menandai batas mandatory ${MANDATORY_HOURS} jam.`}
+                  : 'Bulan tanpa kelas tetap ditampilkan sebagai 0.'}
                 {selectedMonth !== 'All' && ' Grafik ini punya pengatur sendiri, tidak mengikuti filter bulan pada tabel.'}
               </p>
+              {!isPerClassMode && (
+                <div style={styles.chartLegend}>
+                  <span style={styles.legendDash} />
+                  <span>Batas mandatory {MANDATORY_HOURS} jam</span>
+                </div>
+              )}
             </div>
 
             <div style={styles.chartControls}>
@@ -414,14 +429,19 @@ export default function Dashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
                   <XAxis
                     dataKey="label"
-                    tick={{ fontSize: 13, fill: colors.axis }}
+                    tick={{ fontSize: isNarrow ? 12 : 13, fill: colors.axis }}
                     tickLine={false}
-                    interval={0}
+                    interval={axisInterval}
                     angle={isPerClassMode ? -35 : 0}
                     textAnchor={isPerClassMode ? 'end' : 'middle'}
-                    height={isPerClassMode ? 80 : 30}
+                    height={axisHeight}
+                    minTickGap={8}
                   />
-                  <YAxis tick={{ fontSize: 13, fill: colors.axis }} tickLine={false} />
+                  <YAxis
+                    tick={{ fontSize: isNarrow ? 12 : 13, fill: colors.axis }}
+                    tickLine={false}
+                    width={isNarrow ? 34 : 42}
+                  />
                   <Tooltip
                     cursor={{ fill: colors.grid, opacity: 0.4 }}
                     formatter={value => [`${Number(value ?? 0)} jam`, 'Total Jam']}
@@ -434,13 +454,14 @@ export default function Dashboard() {
                       fontSize: '15px'
                     }}
                   />
-                  {/* Batas mandatory hanya bermakna pada agregat bulanan */}
+                  {/* Batas mandatory hanya bermakna pada agregat bulanan.
+                      Tanpa label menempel: teksnya dulu menabrak batang.
+                      Keterangannya dipindah ke penanda di bawah judul. */}
                   {!isPerClassMode && (
                     <ReferenceLine
                       y={MANDATORY_HOURS}
                       stroke={colors.reference}
                       strokeDasharray="4 4"
-                      label={{ value: `Mandatory ${MANDATORY_HOURS}j`, position: 'insideTopRight', fontSize: 12, fill: colors.reference }}
                     />
                   )}
                   <Bar dataKey="hours" name="Total Jam" fill={colors.bar} radius={[4, 4, 0, 0]} />
@@ -499,7 +520,68 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Desktop Table View */}
+        {/* Di layar sempit tabel 8 kolom tidak terbaca: judul materi terpaksa
+            pecah satu kata per baris. Karena itu barisnya disajikan sebagai
+            kartu, bukan dipaksa masuk ke bentuk tabel. */}
+        {isNarrow ? (
+          <div style={styles.cardList}>
+            {filteredSessions.length > 0 ? (
+              filteredSessions.map(s => (
+                <Link key={s.id} href={`/sessions/${s.id}`} style={styles.sessionCard}>
+                  <div style={styles.sessionCardTop}>
+                    <h4 style={styles.sessionCardTitle}>{s.materi}</h4>
+                    <span
+                      style={{
+                        ...styles.badge,
+                        flexShrink: 0,
+                        backgroundColor: s.io_type === 'Out' ? 'var(--accent-light)' : 'var(--primary-light)',
+                        color: s.io_type === 'Out' ? 'var(--accent)' : 'var(--primary)'
+                      }}
+                    >
+                      {s.io_type}
+                    </span>
+                  </div>
+
+                  <p style={styles.sessionCardMeta}>{s.instansi || 'Tanpa instansi'}</p>
+                  <p style={styles.sessionCardMeta}>
+                    {new Date(s.date_start).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} sampai{' '}
+                    {new Date(s.date_end).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </p>
+
+                  <div style={styles.sessionCardStats}>
+                    <div style={styles.sessionCardStat}>
+                      <span style={styles.sessionCardStatLabel}>Jam</span>
+                      <span style={styles.sessionCardStatValue}>{s.total_hours}</span>
+                    </div>
+                    <div style={styles.sessionCardStat}>
+                      <span style={styles.sessionCardStatLabel}>Peserta</span>
+                      <span style={styles.sessionCardStatValue}>{s.participant_count}</span>
+                    </div>
+                    <div style={styles.sessionCardStat}>
+                      <span style={styles.sessionCardStatLabel}>Feedback</span>
+                      <span
+                        style={{
+                          ...styles.sessionCardStatValue,
+                          color: s.feedback_score >= FEEDBACK_MIN_SCORE ? 'var(--success)' : 'var(--text-muted)'
+                        }}
+                      >
+                        {s.feedback_score || '-'}
+                      </span>
+                    </div>
+                    <div style={styles.sessionCardStat}>
+                      <span style={styles.sessionCardStatLabel}>Fee</span>
+                      <span style={styles.sessionCardStatValue}>
+                        {s.feedback_fee > 0 ? `Rp ${Number(s.feedback_fee).toLocaleString('id-ID')}` : '-'}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <div style={styles.emptyCard}>Tidak ada riwayat mengajar yang cocok dengan filter Anda.</div>
+            )}
+          </div>
+        ) : (
         <div style={styles.tableContainer}>
           <table style={styles.table}>
             <thead>
@@ -559,6 +641,7 @@ export default function Dashboard() {
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );
@@ -754,6 +837,88 @@ const styles = {
     fontWeight: 700,
     color: 'var(--foreground)',
   },
+  chartLegend: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    marginTop: '8px',
+    fontSize: '13px',
+    color: 'var(--accent)',
+    fontWeight: 600,
+  },
+  legendDash: {
+    display: 'inline-block',
+    width: '26px',
+    height: 0,
+    borderTop: '2px dashed var(--accent)',
+  },
+  cardList: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '12px',
+    padding: '4px 0 8px',
+  },
+  sessionCard: {
+    display: 'block',
+    backgroundColor: 'var(--card-bg-alt)',
+    border: '1px solid var(--card-border)',
+    borderRadius: 'var(--radius-lg)',
+    padding: '16px',
+    color: 'var(--foreground)',
+    textDecoration: 'none',
+  },
+  sessionCardTop: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: '10px',
+  },
+  sessionCardTitle: {
+    fontSize: '16px',
+    fontWeight: 700,
+    lineHeight: 1.4,
+    color: 'var(--foreground)',
+  },
+  sessionCardMeta: {
+    fontSize: '14px',
+    color: 'var(--text-muted)',
+    marginTop: '2px',
+  },
+  sessionCardStats: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '8px',
+    marginTop: '14px',
+    paddingTop: '12px',
+    borderTop: '1px solid var(--card-border)',
+  },
+  sessionCardStat: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '2px',
+    minWidth: 0,
+  },
+  sessionCardStatLabel: {
+    fontSize: '12px',
+    color: 'var(--text-faint)',
+    fontWeight: 600,
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.4px',
+  },
+  sessionCardStatValue: {
+    fontSize: '15px',
+    fontWeight: 700,
+    color: 'var(--foreground)',
+    overflowWrap: 'anywhere' as const,
+  },
+  emptyCard: {
+    padding: '32px 16px',
+    textAlign: 'center' as const,
+    color: 'var(--text-muted)',
+    fontSize: '15px',
+    border: '1px dashed var(--card-border)',
+    borderRadius: 'var(--radius-lg)',
+  },
   chartSubtitle: {
     fontSize: '14px',
     color: 'var(--text-muted)',
@@ -917,12 +1082,14 @@ const styles = {
     transition: 'background-color 0.2s',
   },
   tdMateri: {
-    padding: '12px 16px',
-    fontWeight: 500,
+    padding: '14px 16px',
+    fontWeight: 600,
     color: 'var(--foreground)',
-    maxWidth: '300px',
+    // Lebar minimum mencegah kolom judul tergencet sampai satu kata per baris
+    minWidth: '260px',
+    maxWidth: '340px',
     whiteSpace: 'normal' as const,
-    wordBreak: 'break-word' as const,
+    overflowWrap: 'break-word' as const,
   },
   td: {
     padding: '14px 16px',
