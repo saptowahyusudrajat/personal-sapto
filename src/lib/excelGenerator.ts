@@ -55,17 +55,26 @@ const COLUMN_SPECS: ColumnSpec[] = [
   { header: 'No.', min: 5, max: 6, wrap: false },
   { header: 'Materi', min: 24, max: 46, wrap: true },
   { header: 'I/O', min: 5, max: 7, wrap: false },
-  { header: 'Inst/Ast', min: 9, max: 10, wrap: false },
-  { header: 'Asst by', min: 8, max: 10, wrap: false },
+  { header: 'Inst/Ast', min: 9, max: 11, wrap: false },
+  { header: 'Asst by', min: 8, max: 11, wrap: false },
   { header: 'Date Start', min: 11, max: 13, wrap: false },
   { header: 'Date End', min: 11, max: 13, wrap: false },
-  { header: 'Teaching Hours', min: 10, max: 12, wrap: true },
+  { header: 'Teaching Hours', min: 11, max: 13, wrap: true },
   { header: 'Total Hours', min: 9, max: 12, wrap: true },
-  { header: 'Participant', min: 9, max: 12, wrap: true },
-  { header: 'Feedback', min: 9, max: 11, wrap: true },
-  { header: 'Fdback fee', min: 11, max: 14, wrap: false },
+  // "Participant" satu kata dan tidak bisa dipatah, jadi kolomnya harus
+  // cukup lebar untuk kata utuh. Sebelumnya terpotong jadi "Participan"/"t".
+  { header: 'Participant', min: 13, max: 14, wrap: true },
+  { header: 'Feedback', min: 11, max: 12, wrap: true },
+  { header: 'Fdback fee', min: 12, max: 14, wrap: false },
   { header: 'Instansi', min: 18, max: 34, wrap: true }
 ];
+
+/* Tinggi satu baris teks Arial 10 di Excel, ditambah sedikit ruang napas.
+   Nilai 13 yang dipakai berkas rujukan ternyata memotong huruf. */
+const LINE_HEIGHT = 15;
+const ROW_PADDING = 3;
+
+const rowHeightFor = (lines: number) => Math.max(18, lines * LINE_HEIGHT + ROW_PADDING);
 
 /** Bentuk tampil tanggal pada format "d-mmm", mis. "2-Jun". Dipakai untuk
  *  memperkirakan lebar kolom, bukan untuk mengisi sel. */
@@ -166,8 +175,11 @@ export async function generateExcelClaim(
 
   const columnWidths = COLUMN_SPECS.map((spec, i) => {
     const longest = Math.max(0, ...contentWidths[i]);
-    // Judul kolom yang dibungkus boleh pecah dua baris, jadi cukup separuhnya
-    const headerNeed = spec.wrap ? Math.ceil(spec.header.length / 2) + 2 : spec.header.length + 2;
+    // Judul yang dibungkus boleh pecah antar kata, tetapi satu kata utuh tidak
+    // bisa dipatah. Jadi patokannya kata terpanjang, bukan separuh panjang
+    // judul, supaya tidak muncul potongan seperti "Participan" + "t".
+    const longestHeaderWord = Math.max(...spec.header.split(/\s+/).map(w => w.length));
+    const headerNeed = spec.wrap ? longestHeaderWord + 3 : spec.header.length + 2;
     const width = Math.min(spec.max, Math.max(spec.min, headerNeed, longest + 2));
     // ExcelJS menganggap 9 sebagai lebar bawaan dan tidak menuliskannya ke
     // berkas, sehingga kolomnya malah jatuh ke lebar default Excel (8.43).
@@ -186,7 +198,7 @@ export async function generateExcelClaim(
       spec.wrap ? wrappedLineCount(spec.header, columnWidths[i]) : 1
     )
   );
-  sheet.getRow(HEADER_ROW).height = Math.max(15, headerLines * 13.5);
+  sheet.getRow(HEADER_ROW).height = rowHeightFor(headerLines);
   for (let col = 1; col <= headers.length; col++) {
     const cell = sheet.getCell(HEADER_ROW, col);
     cell.font = ARIAL_BOLD;
@@ -230,7 +242,7 @@ export async function generateExcelClaim(
       wrappedLineCount(session.materi, columnWidths[1]),
       wrappedLineCount(session.instansi, columnWidths[12])
     );
-    row.height = Math.max(18, lines * 13.5);
+    row.height = rowHeightFor(lines);
 
     for (let col = 1; col <= headers.length; col++) {
       const cell = sheet.getCell(r, col);
@@ -289,7 +301,8 @@ export async function generateExcelClaim(
   };
 
   [totalRow, mandatoryRow, extraRow, grandRow].forEach(r => {
-    sheet.getRow(r).height = 13;
+    // Tinggi 13 pada berkas rujukan memotong huruf pada label maupun angkanya
+    sheet.getRow(r).height = rowHeightFor(1);
     for (let col = 2; col <= 12; col++) {
       const cell = sheet.getCell(r, col);
       cell.font = ARIAL_BOLD;
