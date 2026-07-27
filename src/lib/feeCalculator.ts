@@ -5,7 +5,14 @@
  *    dibayar per jam sebesar Teaching Fee.
  */
 export const MANDATORY_HOURS = 50;
-export const EXTRA_HOUR_RATE = 35000;
+/**
+ * Tarif per jam untuk kelebihan jam mengajar, jenjang Junior.
+ * Sesuai sheet "Instruktur dan Asisten" pada arsip klaim:
+ *   Junior : JamLebih * 30.000
+ *   Senior : JamLebih * 50.000
+ * Ganti ke 50000 bila jenjang naik ke Senior (masa kerja di atas 2 tahun).
+ */
+export const EXTRA_HOUR_RATE = 30000;
 export const FEEDBACK_FEE = 75000;
 export const FEEDBACK_MIN_SCORE = 3.3;
 

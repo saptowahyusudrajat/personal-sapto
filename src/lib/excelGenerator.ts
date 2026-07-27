@@ -5,6 +5,8 @@ import {
   FEEDBACK_FEE,
   FEEDBACK_MIN_SCORE
 } from './feeCalculator';
+import { signatureLine } from './claimFile';
+export { claimFileName } from './claimFile';
 
 export interface SessionRecord {
   materi: string;
@@ -19,245 +21,235 @@ export interface SessionRecord {
   instansi: string;
 }
 
+
+// Format akuntansi yang dipakai berkas rujukan pada kolom rupiah
+const CURRENCY_FMT = '_(* #,##0_);_(* (#,##0);_(* "-"??_);_(@_)';
+const ARIAL = { name: 'Arial', size: 10 };
+const ARIAL_BOLD = { name: 'Arial', size: 10, bold: true };
+
+const THIN_BORDER: ExcelJS.Borders = {
+  top: { style: 'thin' },
+  left: { style: 'thin' },
+  bottom: { style: 'thin' },
+  right: { style: 'thin' }
+} as ExcelJS.Borders;
+
 export async function generateExcelClaim(
   monthYear: string,
   instructorName: string,
-  sessions: SessionRecord[]
+  sessions: SessionRecord[],
+  exportedAt: Date = new Date()
 ): Promise<ExcelJS.Buffer> {
   const workbook = new ExcelJS.Workbook();
-  
-  // Create worksheets
-  const templateSheet = workbook.addWorksheet('Template');
-  const helperSheet = workbook.addWorksheet('Instruktur dan Asisten');
+  const sheet = workbook.addWorksheet('Template');
+  const helper = workbook.addWorksheet('Instruktur dan Asisten');
 
-  // Helper Sheet Static Content
-  helperSheet.columns = [{ header: '1. Jenjang jabatan instruktur', key: 'jenjang', width: 60 }];
-  helperSheet.addRows([
-    ['i. Yunior : 0 sd 2 tahun'],
-    ['ii. Senior : > 2 tahun'],
-    [''],
-    ['Perpindahan jenjang harus dapat sertifikasi internasional, misal CCNA, OCA atau yang lain.'],
-  ]);
+  /* ------------------------------------------------------------------ *
+   * Judul dan metadata (baris 1 sampai 3)
+   * ------------------------------------------------------------------ */
+  sheet.getCell('B1').value = 'Claim Mengajar Instruktur';
+  sheet.getCell('B1').font = ARIAL_BOLD;
 
-  // Main Template Sheet Design
-  templateSheet.views = [{ showGridLines: true }];
-
-  // Metadata rows
-  templateSheet.getCell('B1').value = 'Bulan';
-  templateSheet.getCell('C1').value = ':';
-  templateSheet.getCell('D1').value = monthYear;
-  templateSheet.getCell('B2').value = 'Instruktur';
-  templateSheet.getCell('C2').value = ':';
-  templateSheet.getCell('D2').value = instructorName;
-
-  // Metadata styling
-  ['B1', 'B2', 'C1', 'C2'].forEach(cellId => {
-    const cell = templateSheet.getCell(cellId);
-    cell.font = { name: 'Arial', size: 10, bold: true };
-  });
-  ['D1', 'D2'].forEach(cellId => {
-    const cell = templateSheet.getCell(cellId);
-    cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF1B365D' } };
+  sheet.getCell('B2').value = 'Bulan';
+  sheet.getCell('C2').value = ':';
+  sheet.getCell('D2').value = monthYear;
+  sheet.getCell('B3').value = 'Instruktur';
+  sheet.getCell('C3').value = ':';
+  sheet.getCell('D3').value = instructorName;
+  ['B2', 'C2', 'D2', 'B3', 'C3', 'D3'].forEach(ref => {
+    sheet.getCell(ref).font = ARIAL;
   });
 
-  // Table Headers at Row 4
+  /* ------------------------------------------------------------------ *
+   * Kepala tabel (baris 5). Berkas rujukan tidak memakai warna latar,
+   * hanya huruf tebal dan garis tepi.
+   * ------------------------------------------------------------------ */
+  const HEADER_ROW = 5;
   const headers = [
-    'No.',
-    'Materi',
-    'I/O',
-    'Inst/Ast',
-    'Asst by',
-    'Date Start',
-    'Date End',
-    'Teaching Hours',
-    'Total Hours',
-    'Participant',
-    'Feedback',
-    'Fdback fee',
-    'Instansi'
+    'No.', 'Materi', 'I/O', 'Inst/Ast', 'Asst by', 'Date Start', 'Date End',
+    'Teaching Hours', 'Total Hours', 'Participant', 'Feedback', 'Fdback fee', 'Instansi'
   ];
 
-  templateSheet.getRow(4).values = headers;
-  templateSheet.getRow(4).font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-  templateSheet.getRow(4).height = 25;
-
-  const headerFill: ExcelJS.Fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: 'FF1F4E78' } // Indigo Blue
-  };
-
-  for (let colIdx = 1; colIdx <= headers.length; colIdx++) {
-    const cell = templateSheet.getCell(4, colIdx);
-    cell.fill = headerFill;
-    cell.alignment = { vertical: 'middle', horizontal: 'center' };
-    cell.border = {
-      top: { style: 'thin' },
-      left: { style: 'thin' },
-      bottom: { style: 'medium' },
-      right: { style: 'thin' }
-    };
+  sheet.getRow(HEADER_ROW).values = headers;
+  sheet.getRow(HEADER_ROW).height = 13;
+  for (let col = 1; col <= headers.length; col++) {
+    const cell = sheet.getCell(HEADER_ROW, col);
+    cell.font = ARIAL_BOLD;
+    cell.border = THIN_BORDER;
+    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
   }
 
-  // Populate teaching data rows starting from row 5
-  const currentRawRow = 5;
+  /* ------------------------------------------------------------------ *
+   * Baris data (mulai baris 6).
+   * Kolom Total Hours dan Fdback fee sengaja ditulis sebagai RUMUS, sama
+   * seperti berkas rujukan, supaya angkanya tetap hidup bila ada koreksi
+   * manual di Excel.
+   * ------------------------------------------------------------------ */
+  const FIRST_DATA_ROW = 6;
   sessions.forEach((session, index) => {
-    const rowNum = currentRawRow + index;
-    const values = [
-      index + 1,
-      session.materi,
-      session.io_type,
-      'Inst',
-      '-',
-      new Date(session.date_start),
-      new Date(session.date_end),
-      session.teaching_hours,
-      session.total_hours,
-      session.participant_count,
-      session.feedback_score,
-      session.feedback_fee,
-      session.instansi
-    ];
+    const r = FIRST_DATA_ROW + index;
+    const row = sheet.getRow(r);
 
-    const row = templateSheet.getRow(rowNum);
-    row.values = values;
-    row.height = 22;
-    row.font = { name: 'Arial', size: 9 };
+    row.getCell(1).value = index + 1;
+    row.getCell(2).value = session.materi;
+    row.getCell(3).value = session.io_type;
+    row.getCell(4).value = 'Inst';
+    row.getCell(5).value = '-';
+    row.getCell(6).value = new Date(session.date_start);
+    row.getCell(7).value = new Date(session.date_end);
+    row.getCell(8).value = session.teaching_hours;
+    row.getCell(9).value = {
+      formula: `IFERROR(_xlfn.IFS(C${r}="In",H${r}*1,C${r}="Out",H${r}*1.3),0)`
+    };
+    row.getCell(10).value = session.participant_count;
+    row.getCell(11).value = session.feedback_score;
+    row.getCell(12).value = {
+      formula: `IF(K${r}>=${FEEDBACK_MIN_SCORE},${FEEDBACK_FEE},0)`
+    };
+    row.getCell(13).value = session.instansi;
 
-    // Row borders and alignments
-    for (let colIdx = 1; colIdx <= headers.length; colIdx++) {
-      const cell = templateSheet.getCell(rowNum, colIdx);
-      cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-      };
-
-      // Alignment and formats
-      if ([1, 3, 4, 5, 6, 7].includes(colIdx)) {
-        cell.alignment = { vertical: 'middle', horizontal: 'center' };
-      } else if ([8, 9, 10, 11, 12].includes(colIdx)) {
-        cell.alignment = { vertical: 'middle', horizontal: 'right' };
-      } else {
-        cell.alignment = { vertical: 'middle', horizontal: 'left' };
-      }
-
-      // Number formatting
-      if (colIdx === 6 || colIdx === 7) {
-        cell.numFmt = 'yyyy-mm-dd';
-      } else if (colIdx === 8 || colIdx === 9) {
-        cell.numFmt = '0.0';
-      } else if (colIdx === 10) {
-        cell.numFmt = '#,##0';
-      } else if (colIdx === 11) {
-        cell.numFmt = '0.00';
-      } else if (colIdx === 12) {
-        cell.numFmt = '"Rp" #,##0';
-      }
+    row.height = 62.5;
+    for (let col = 1; col <= headers.length; col++) {
+      const cell = sheet.getCell(r, col);
+      cell.font = ARIAL;
+      cell.border = THIN_BORDER;
+      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      if (col === 6 || col === 7) cell.numFmt = 'd-mmm';
+      if (col === 12) cell.numFmt = CURRENCY_FMT;
     }
   });
 
-  const totalSessionsCount = sessions.length;
-  const footerStartRow = 5 + totalSessionsCount;
+  const lastDataRow = FIRST_DATA_ROW + sessions.length - 1;
 
-  // Total Jam Mengajar Row
-  templateSheet.getCell(`B${footerStartRow}`).value = 'Total Jam Mengajar';
-  templateSheet.getCell(`I${footerStartRow}`).value = { formula: `=SUM(I5:I${footerStartRow - 1})` };
-  templateSheet.getCell(`L${footerStartRow}`).value = { formula: `=SUM(L5:L${footerStartRow - 1})` };
+  /* ------------------------------------------------------------------ *
+   * Ringkasan. Berkas rujukan menyisakan satu baris kosong setelah data,
+   * lalu empat baris ringkasan dengan label yang digabung dari B sampai H.
+   * ------------------------------------------------------------------ */
+  const totalRow = lastDataRow + 2;
+  const mandatoryRow = totalRow + 1;
+  const extraRow = totalRow + 2;
+  const grandRow = totalRow + 3;
 
-  // Mandatory Row
-  templateSheet.getCell(`B${footerStartRow + 1}`).value = 'Mandatory';
-  templateSheet.getCell(`I${footerStartRow + 1}`).value = MANDATORY_HOURS;
+  sheet.mergeCells(`B${totalRow}:H${totalRow}`);
+  sheet.mergeCells(`B${mandatoryRow}:H${mandatoryRow}`);
+  sheet.mergeCells(`B${extraRow}:H${extraRow}`);
+  sheet.mergeCells(`B${grandRow}:K${grandRow}`);
 
-  // Extra Jam Mengajar Row (kelebihan jam x Teaching Fee per jam)
-  templateSheet.getCell(`B${footerStartRow + 2}`).value =
-    `Extra Jam Mengajar (@ Rp ${EXTRA_HOUR_RATE.toLocaleString('id-ID')}/jam)`;
-  templateSheet.getCell(`I${footerStartRow + 2}`).value = {
-    formula: `=IF(I${footerStartRow}>I${footerStartRow + 1},I${footerStartRow}-I${footerStartRow + 1},0)`
+  sheet.getCell(`B${totalRow}`).value = 'Total Jam Mengajar';
+  sheet.getCell(`I${totalRow}`).value = { formula: `SUM(I${FIRST_DATA_ROW}:I${lastDataRow})` };
+  sheet.getCell(`L${totalRow}`).value = { formula: `SUM(L${FIRST_DATA_ROW}:L${lastDataRow})` };
+
+  sheet.getCell(`B${mandatoryRow}`).value = 'Mandatory';
+  sheet.getCell(`I${mandatoryRow}`).value = MANDATORY_HOURS;
+
+  sheet.getCell(`B${extraRow}`).value = 'Extra Jam Mengajar';
+  sheet.getCell(`I${extraRow}`).value = {
+    formula: `IF(I${totalRow}<=${MANDATORY_HOURS},0,(I${totalRow}-I${mandatoryRow}))`
   };
-  templateSheet.getCell(`K${footerStartRow + 2}`).value = EXTRA_HOUR_RATE;
-  templateSheet.getCell(`L${footerStartRow + 2}`).value = {
-    formula: `=I${footerStartRow + 2}*K${footerStartRow + 2}`
+  sheet.getCell(`L${extraRow}`).value = { formula: `I${extraRow}*${EXTRA_HOUR_RATE}` };
+
+  sheet.getCell(`B${grandRow}`).value = 'GRAND TOTAL';
+  sheet.getCell(`L${grandRow}`).value = {
+    formula: `SUM(L${totalRow}:L${extraRow})`
   };
 
-  // GRAND TOTAL Row
-  templateSheet.getCell(`B${footerStartRow + 3}`).value = 'GRAND TOTAL';
-  templateSheet.getCell(`L${footerStartRow + 3}`).value = {
-    formula: `=L${footerStartRow}+L${footerStartRow + 2}`
-  };
-
-  // Style the Summary Section
-  const summaryFill: ExcelJS.Fill = {
+  // Baris GRAND TOTAL diberi latar hijau, sama seperti berkas rujukan
+  const GREEN: ExcelJS.Fill = {
     type: 'pattern',
     pattern: 'solid',
-    fgColor: { argb: 'FFF2F2F2' }
+    fgColor: { argb: 'FF92D050' }
   };
 
-  for (let offset = 0; offset < 4; offset++) {
-    const rowNum = footerStartRow + offset;
-    const row = templateSheet.getRow(rowNum);
-    row.height = 20;
-    row.font = { name: 'Arial', size: 9, bold: true };
-
-    for (let colIdx = 1; colIdx <= headers.length; colIdx++) {
-      const cell = templateSheet.getCell(rowNum, colIdx);
-      cell.fill = summaryFill;
-      cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: offset === 3 ? 'medium' : 'thin' },
-        right: { style: 'thin' }
-      };
-
-      if (colIdx === 9) {
-        cell.numFmt = '0.0';
-        cell.alignment = { vertical: 'middle', horizontal: 'right' };
-      } else if (colIdx === 11) {
-        // Tarif per jam pada baris Extra Jam Mengajar
-        cell.numFmt = '"Rp" #,##0';
-        cell.alignment = { vertical: 'middle', horizontal: 'right' };
-      } else if (colIdx === 12) {
-        cell.numFmt = '"Rp" #,##0';
-        cell.alignment = { vertical: 'middle', horizontal: 'right' };
-      }
+  [totalRow, mandatoryRow, extraRow, grandRow].forEach(r => {
+    sheet.getRow(r).height = 13;
+    for (let col = 2; col <= 12; col++) {
+      const cell = sheet.getCell(r, col);
+      cell.font = ARIAL_BOLD;
+      cell.border = THIN_BORDER;
+      if (col === 9) cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      if (col === 12) cell.numFmt = CURRENCY_FMT;
+      if (r === grandRow) cell.fill = GREEN;
     }
-  }
+    sheet.getCell(r, 2).alignment = { vertical: 'middle', horizontal: 'center' };
+  });
 
-  // Signatures section
-  const dateStr = `Surabaya, ${monthYear}`;
-  templateSheet.getCell(`K${footerStartRow + 5}`).value = dateStr;
-  templateSheet.getCell(`K${footerStartRow + 5}`).font = { name: 'Arial', size: 10, italic: true };
+  /* ------------------------------------------------------------------ *
+   * Tanda tangan. Tanggalnya adalah hari berkas ini dibuat, bukan bulan
+   * klaimnya, mengikuti kebiasaan pada arsip.
+   * ------------------------------------------------------------------ */
+  const signRow = totalRow + 5;
+  const nameRow = totalRow + 11;
 
-  templateSheet.getCell(`K${footerStartRow + 11}`).value = instructorName;
-  templateSheet.getCell(`K${footerStartRow + 11}`).font = { name: 'Arial', size: 10, bold: true, underline: true };
+  sheet.getCell(`K${signRow}`).value = signatureLine(exportedAt);
+  sheet.getCell(`K${signRow}`).font = ARIAL;
+  sheet.getCell(`K${signRow}`).alignment = { horizontal: 'center' };
 
-  // Footer notes section
-  const notesStart = footerStartRow + 13;
-  templateSheet.getCell(`B${notesStart}`).value = 'Catatan:';
-  templateSheet.getCell(`B${notesStart}`).font = { name: 'Arial', size: 9, bold: true };
+  // Nama mengacu ke sel metadata, persis seperti berkas rujukan
+  sheet.getCell(`K${nameRow}`).value = { formula: 'D3' };
+  sheet.getCell(`K${nameRow}`).font = ARIAL_BOLD;
+  sheet.getCell(`K${nameRow}`).alignment = { horizontal: 'center' };
 
-  const notesList = [
+  /* ------------------------------------------------------------------ *
+   * Catatan kaki
+   * ------------------------------------------------------------------ */
+  const notesRow = totalRow + 12;
+  sheet.getCell(`B${notesRow}`).value = 'Catatan:';
+  sheet.getCell(`B${notesRow}`).font = ARIAL;
+
+  const notes = [
     '1. Tentang I/O',
-    '   * I: In, mengajar tidak menginap',
+    '    * I: In, mengajar tidak menginap',
     '   * O: Out, mengajar menginap (luar kota), Total Hours x 1.3',
     `2. Feedback >=${FEEDBACK_MIN_SCORE} dapat Feedback fee ${FEEDBACK_FEE.toLocaleString('id-ID')}, berlaku u/ tiap sesi (misal: DBMS Fundamen 1 feedback, DBMS Admin 1 feedback)`,
-    `3. Md Hours (minimal jam mengajar) = ${MANDATORY_HOURS} jam mengajar. Lebih dari itu (Ext. hours) dapat fee per jam (Teach. Fee) Rp ${EXTRA_HOUR_RATE.toLocaleString('id-ID')}/jam`,
+    `3. Md Hours (minimal jam mengajar) = ${MANDATORY_HOURS} jam mengajar. Lebih dari itu (Ext. hours) dapat fee per jam (Teach. Fee)`,
     '4. Tentang instruktur sebagai asisten instruktur lain, ada di worksheet "Instruktur dan Asisten"'
   ];
-
-  notesList.forEach((note, idx) => {
-    const cell = templateSheet.getCell(`B${notesStart + 1 + idx}`);
+  notes.forEach((note, i) => {
+    const cell = sheet.getCell(`B${notesRow + 1 + i}`);
     cell.value = note;
-    cell.font = { name: 'Arial', size: 8, italic: true, color: { argb: 'FF595959' } };
+    cell.font = ARIAL;
   });
 
-  // Adjust column widths beautifully
-  const colWidths = [6, 45, 8, 12, 12, 15, 15, 15, 15, 12, 10, 15, 25];
-  colWidths.forEach((width, index) => {
-    templateSheet.getColumn(index + 1).width = width;
+  /* ------------------------------------------------------------------ *
+   * Lebar kolom, disalin dari berkas rujukan
+   * ------------------------------------------------------------------ */
+  const widths = [4.18, 15.18, 3.82, 7.45, 7.45, 9.63, 9.63, 14.82, 11.36, 10.45, 10, 11.18, 10.45];
+  widths.forEach((w, i) => {
+    sheet.getColumn(i + 1).width = w;
   });
 
-  // Generate Buffer
+  /* ------------------------------------------------------------------ *
+   * Lembar kedua: aturan jenjang dan pembagian fee, sesuai arsip
+   * ------------------------------------------------------------------ */
+  const helperLines = [
+    '1. Jenjang jabatan instruktur',
+    'i. Yunior : 0 sd 2 tahun',
+    'ii. Senior : > 2 tahun',
+    '',
+    'Perpindahan jenjang harus dapat sertifikasi internasional, misal CCNA, OCA atau yang lain.',
+    '',
+    '2. Rumus claim ngajar ',
+    'i. Tanpa memperhatikan jumlah peserta',
+    `ii. Minimal ngajar ${MANDATORY_HOURS} jam`,
+    `iii. Lebih dari ${MANDATORY_HOURS} jam, rumus yang digunakan :`,
+    '     a. Junior : JamLebih * 30.000',
+    '     b. Senior : JamLebih * 50.000',
+    '',
+    '3. Instruktur dan Asisten',
+    'i. Bila instruktur meng-asisteni instruktur (peserta > 10)',
+    '   a. Jam ngajar keduanya dihitung sama (dianggap sama-sama ngajar)',
+    `   b. Bila claim ( > ${MANDATORY_HOURS} jam) :`,
+    '       * untuk instruktur (yang mengajar di depan): fee mengajar 100%',
+    '       * untuk asisten (instruktur yang membantu): fee mengajar 75%',
+    '   c. Sama-sama dapat fee feedback 100%',
+    '   d. Di lembar claim, ditulis di kolom "Inst/Ast" sebagai Inst ataukah Ast'
+  ];
+  helperLines.forEach((line, i) => {
+    const cell = helper.getCell(`A${i + 1}`);
+    cell.value = line;
+    cell.font = ARIAL;
+  });
+  helper.getColumn(1).width = 80;
+
   return workbook.xlsx.writeBuffer();
 }

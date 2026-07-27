@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateExcelClaim, SessionRecord } from '@/lib/excelGenerator';
+import { generateExcelClaim, claimFileName, SessionRecord } from '@/lib/excelGenerator';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -108,7 +108,8 @@ export async function GET(req: NextRequest) {
     // Set headers and return file
     const headers = new Headers();
     headers.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    headers.set('Content-Disposition', `attachment; filename="SSW Klaim Mengajar Instruktur - ${monthYear.replace(' ', '')}.xlsx"`);
+    // Nama berkas mengikuti pola arsip: "SSW Klaim Mengajar Instruktur - Jun2026.xlsx"
+    headers.set('Content-Disposition', `attachment; filename="${claimFileName(monthYear)}"`);
 
     return new Response(new Uint8Array(buffer), {
       status: 200,

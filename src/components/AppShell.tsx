@@ -107,12 +107,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <header style={styles.header}>
-        <div style={styles.headerContainer}>
+        <div style={isNarrow ? { ...styles.headerContainer, ...styles.headerContainerNarrow } : styles.headerContainer}>
           <Link href="/" style={styles.logo}>
-            <span style={styles.logoBadge}>SW</span>
+            <span style={isNarrow ? { ...styles.logoBadge, ...styles.logoBadgeNarrow } : styles.logoBadge}>
+              SSW
+            </span>
             <div style={styles.logoText}>
               <h1 style={styles.title}>Teaching Portal</h1>
-              <p style={styles.subtitle}>Sapto Wahyu Sudrajat</p>
+              {/* Di ponsel baris nama disembunyikan supaya header tidak
+                  memakan seperempat layar. */}
+              {!isNarrow && <p style={styles.subtitle}>Sapto Wahyu Sudrajat</p>}
             </div>
           </Link>
           <nav style={styles.nav}>
@@ -135,7 +139,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <footer style={styles.footer}>
         <div style={styles.footerContainer}>
           <p>&copy; 2026 Sapto Wahyu Sudrajat. All Rights Reserved.</p>
-          <p style={styles.footerSub}>In partnership with INIXINDO Surabaya</p>
         </div>
       </footer>
     </>
@@ -191,29 +194,41 @@ const styles = {
     textDecoration: 'none',
     color: 'inherit',
   },
+  headerContainerNarrow: {
+    padding: '8px 12px',
+    gap: '8px',
+  },
   logoBadge: {
     backgroundColor: 'var(--primary-light)',
     color: 'var(--primary)',
     fontWeight: 'bold',
-    fontSize: '20px',
-    width: '40px',
-    height: '40px',
+    fontSize: '15px',
+    letterSpacing: '-0.3px',
+    width: '42px',
+    height: '42px',
     borderRadius: '50%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     border: '1px solid var(--card-border)',
+    flexShrink: 0,
+  },
+  logoBadgeNarrow: {
+    width: '34px',
+    height: '34px',
+    fontSize: '12px',
   },
   logoText: {
     display: 'flex',
     flexDirection: 'column' as const,
   },
   title: {
-    fontSize: '20px',
+    fontSize: 'clamp(16px, 3vw, 20px)',
     fontWeight: 700,
     color: 'var(--foreground)',
     margin: 0,
     letterSpacing: '-0.3px',
+    whiteSpace: 'nowrap' as const,
   },
   subtitle: {
     fontSize: '14px',
@@ -231,11 +246,11 @@ const styles = {
     overflowX: 'auto' as const,
   },
   navLink: {
-    fontSize: '16px',
+    fontSize: 'clamp(14px, 2.6vw, 16px)',
     fontWeight: 600,
     color: 'var(--text-muted)',
     textDecoration: 'none',
-    padding: '8px 12px',
+    padding: '7px 10px',
     borderRadius: 'var(--radius)',
     transition: 'all 0.2s',
     whiteSpace: 'nowrap' as const,
@@ -264,7 +279,7 @@ const styles = {
     backgroundColor: 'var(--primary-light)',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius)',
-    padding: '8px 14px',
+    padding: '7px 10px',
     fontSize: '15px',
     fontWeight: 600,
     color: 'var(--foreground)',

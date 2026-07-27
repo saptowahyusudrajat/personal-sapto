@@ -146,8 +146,15 @@ A. Feedback fee
 
 B. Mandatory 50 jam & Extra Jam Fee
    Batas minimal 50 jam mengajar berlaku PER BULAN. Jam di atas 50 dibayar
-   Rp 35.000 per jam. Contoh: bulan dengan 63 jam -> extra 13 jam
-   -> 13 x 35.000 = Rp 455.000.
+   Rp 30.000 per jam (tarif jenjang JUNIOR). Contoh: bulan dengan 63 jam
+   -> extra 13 jam -> 13 x 30.000 = Rp 390.000.
+
+   Menurut sheet "Instruktur dan Asisten" pada arsip klaim:
+      Junior (0 sd 2 tahun) : JamLebih x 30.000
+      Senior (> 2 tahun)    : JamLebih x 50.000
+   Bila jenjang Anda naik ke Senior, ubah EXTRA_HOUR_RATE di
+   src/lib/feeCalculator.ts menjadi 50000. Seluruh tampilan dan berkas Excel
+   akan ikut menyesuaikan.
 
 C. Kelas Out (luar kota)
    Total Hours = Jam Tatap Muka x 1.3. Nilai inilah yang dipakai untuk

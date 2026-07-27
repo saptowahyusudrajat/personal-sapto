@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { calculateClaimSummary } from '@/lib/feeCalculator';
+import { claimFileName } from '@/lib/claimFile';
 import {
   FileSpreadsheet,
   Calendar,
@@ -153,7 +154,7 @@ export default function ClaimExport() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `SSW Klaim Mengajar Instruktur - ${monthYearStr.replace(' ', '')}.xlsx`;
+      link.download = claimFileName(monthYearStr);
       document.body.appendChild(link);
       link.click();
       link.remove();

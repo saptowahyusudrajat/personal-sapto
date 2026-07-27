@@ -248,14 +248,6 @@ export default function Dashboard() {
 
   return (
     <div style={styles.container}>
-      {/* Welcome Hero */}
-      <section style={styles.hero}>
-        <h2 style={styles.heroTitle}>Selamat Datang di Portal Mengajar Anda</h2>
-        <p style={styles.heroSubtitle}>
-          Analisis kinerja mengajar, rekapitulasi feedback peserta, dan otomasi pengajuan klaim bulanan di INIXINDO Surabaya secara tersentralisasi.
-        </p>
-      </section>
-
       {/* Progres jam mengajar terhadap batas mandatory */}
       <div style={styles.progressCard}>
         <div style={styles.progressHeader}>
@@ -667,26 +659,6 @@ const styles = {
     borderTop: '3px solid var(--primary)',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',
-  },
-  hero: {
-    backgroundColor: 'var(--card-bg)',
-    border: '1px solid var(--card-border)',
-    borderRadius: 'var(--radius-lg)',
-    padding: 'clamp(20px, 4vw, 32px)',
-    boxShadow: 'var(--shadow-sm)',
-  },
-  heroTitle: {
-    fontSize: 'clamp(19px, 3.2vw, 24px)',
-    fontWeight: 700,
-    color: 'var(--foreground)',
-    marginBottom: '8px',
-    letterSpacing: '-0.5px',
-  },
-  heroSubtitle: {
-    fontSize: '16px',
-    color: 'var(--text-muted)',
-    maxWidth: '800px',
-    lineHeight: 1.6,
   },
   progressCard: {
     backgroundColor: 'var(--card-bg)',
