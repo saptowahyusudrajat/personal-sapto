@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { useTheme, chartColors } from '@/components/ThemeProvider';
 import {
   calculateClaimSummary,
   calculateClaimSummaryByMonth,
@@ -74,6 +75,8 @@ interface Session {
 }
 
 export default function Dashboard() {
+  const { theme } = useTheme();
+  const colors = chartColors(theme);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -405,37 +408,42 @@ export default function Dashboard() {
                   data={chartData}
                   margin={{ top: 10, right: 10, left: -20, bottom: isPerClassMode ? 60 : 0 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0ece6" />
+                  {/* Recharts menulis warna sebagai atribut SVG, di mana var(--...)
+                      tidak dijamin diterjemahkan. Karena itu warnanya dipilih
+                      dari tema aktif lewat chartColors(). */}
+                  <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
                   <XAxis
                     dataKey="label"
-                    tick={{ fontSize: 11, fill: '#70685e' }}
+                    tick={{ fontSize: 13, fill: colors.axis }}
                     tickLine={false}
                     interval={0}
                     angle={isPerClassMode ? -35 : 0}
                     textAnchor={isPerClassMode ? 'end' : 'middle'}
                     height={isPerClassMode ? 80 : 30}
                   />
-                  <YAxis tick={{ fontSize: 11, fill: '#70685e' }} tickLine={false} />
+                  <YAxis tick={{ fontSize: 13, fill: colors.axis }} tickLine={false} />
                   <Tooltip
+                    cursor={{ fill: colors.grid, opacity: 0.4 }}
                     formatter={value => [`${Number(value ?? 0)} jam`, 'Total Jam']}
                     contentStyle={{
-                      backgroundColor: '#ffffff',
+                      backgroundColor: colors.tooltipBg,
+                      color: 'var(--foreground)',
                       borderRadius: '8px',
-                      border: '1px solid var(--card-border)',
+                      border: `1px solid ${colors.tooltipBorder}`,
                       boxShadow: 'var(--shadow-md)',
-                      fontSize: '13px'
+                      fontSize: '15px'
                     }}
                   />
                   {/* Batas mandatory hanya bermakna pada agregat bulanan */}
                   {!isPerClassMode && (
                     <ReferenceLine
                       y={MANDATORY_HOURS}
-                      stroke="var(--accent)"
+                      stroke={colors.reference}
                       strokeDasharray="4 4"
-                      label={{ value: `Mandatory ${MANDATORY_HOURS}j`, position: 'insideTopRight', fontSize: 10, fill: 'var(--accent)' }}
+                      label={{ value: `Mandatory ${MANDATORY_HOURS}j`, position: 'insideTopRight', fontSize: 12, fill: colors.reference }}
                     />
                   )}
-                  <Bar dataKey="hours" name="Total Jam" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="hours" name="Total Jam" fill={colors.bar} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -509,7 +517,7 @@ export default function Dashboard() {
             <tbody>
               {filteredSessions.length > 0 ? (
                 filteredSessions.map((s, idx) => (
-                  <tr key={s.id} style={{ ...styles.tr, backgroundColor: idx % 2 === 0 ? '#ffffff' : '#fcfcfb' }}>
+                  <tr key={s.id} style={{ ...styles.tr, backgroundColor: idx % 2 === 0 ? 'var(--card-bg)' : 'var(--card-bg-alt)' }}>
                     <td style={styles.tdMateri}>
                       <Link href={`/sessions/${s.id}`} style={styles.materiLink}>
                         {s.materi}
@@ -578,7 +586,7 @@ const styles = {
     animation: 'spin 1s linear infinite',
   },
   hero: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
     padding: 'clamp(20px, 4vw, 32px)',
@@ -592,13 +600,13 @@ const styles = {
     letterSpacing: '-0.5px',
   },
   heroSubtitle: {
-    fontSize: '14px',
+    fontSize: '16px',
     color: 'var(--text-muted)',
     maxWidth: '800px',
     lineHeight: 1.6,
   },
   progressCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
     padding: 'clamp(16px, 3vw, 24px)',
@@ -615,7 +623,7 @@ const styles = {
     gap: '12px',
   },
   progressTitle: {
-    fontSize: '15px',
+    fontSize: '17px',
     fontWeight: 700,
     color: 'var(--foreground)',
     display: 'flex',
@@ -623,7 +631,7 @@ const styles = {
     gap: '8px',
   },
   progressSubtitle: {
-    fontSize: '12px',
+    fontSize: '14px',
     color: 'var(--text-muted)',
     marginTop: '2px',
   },
@@ -633,13 +641,13 @@ const styles = {
     gap: '4px',
   },
   progressBig: {
-    fontSize: '28px',
+    fontSize: '30px',
     fontWeight: 700,
     color: 'var(--foreground)',
     letterSpacing: '-1px',
   },
   progressOf: {
-    fontSize: '13px',
+    fontSize: '15px',
     color: 'var(--text-muted)',
     fontWeight: 500,
   },
@@ -661,21 +669,21 @@ const styles = {
     alignItems: 'center',
     flexWrap: 'wrap' as const,
     gap: '8px',
-    fontSize: '13px',
+    fontSize: '15px',
     color: 'var(--text-muted)',
   },
   progressFooterRight: {
-    fontSize: '12px',
+    fontSize: '14px',
     color: 'var(--text-muted)',
   },
   filterNotice: {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    fontSize: '12px',
+    fontSize: '14px',
     color: 'var(--accent)',
     backgroundColor: 'var(--accent-light)',
-    border: '1px solid #f2ddd1',
+    border: '1px solid var(--accent-border)',
     borderRadius: 'var(--radius)',
     padding: '10px 14px',
     marginBottom: '-16px',
@@ -691,7 +699,7 @@ const styles = {
     gap: '20px',
   },
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
     padding: 'clamp(16px, 3vw, 24px)',
@@ -707,7 +715,7 @@ const styles = {
     gap: '8px',
   },
   cardTitle: {
-    fontSize: '12px',
+    fontSize: '14px',
     fontWeight: 600,
     color: 'var(--text-muted)',
     textTransform: 'uppercase' as const,
@@ -721,13 +729,13 @@ const styles = {
     overflowWrap: 'anywhere' as const,
   },
   valueUnit: {
-    fontSize: '14px',
+    fontSize: '16px',
     fontWeight: 400,
     color: 'var(--text-muted)',
   },
   cardLabel: {
-    fontSize: '11px',
-    color: '#a0988f',
+    fontSize: '13px',
+    color: 'var(--text-faint)',
   },
   chartSection: {
     display: 'grid',
@@ -735,19 +743,19 @@ const styles = {
     gap: '24px',
   },
   chartCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
     padding: 'clamp(16px, 3vw, 24px)',
     boxShadow: 'var(--shadow-sm)',
   },
   sectionTitle: {
-    fontSize: '16px',
+    fontSize: '18px',
     fontWeight: 700,
     color: 'var(--foreground)',
   },
   chartSubtitle: {
-    fontSize: '12px',
+    fontSize: '14px',
     color: 'var(--text-muted)',
     marginTop: '4px',
     maxWidth: '560px',
@@ -778,14 +786,14 @@ const styles = {
     border: 'none',
     borderRadius: '6px',
     padding: '6px 12px',
-    fontSize: '12px',
+    fontSize: '14px',
     fontWeight: 600,
     color: 'var(--text-muted)',
     cursor: 'pointer',
     whiteSpace: 'nowrap' as const,
   },
   segmentedBtnActive: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     color: 'var(--foreground)',
     boxShadow: 'var(--shadow-sm)',
   },
@@ -793,8 +801,8 @@ const styles = {
     padding: '8px 12px',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius)',
-    backgroundColor: '#ffffff',
-    fontSize: '12px',
+    backgroundColor: 'var(--card-bg)',
+    fontSize: '14px',
     fontWeight: 500,
     outline: 'none',
     cursor: 'pointer',
@@ -805,13 +813,13 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     textAlign: 'center' as const,
-    fontSize: '13px',
+    fontSize: '15px',
     color: 'var(--text-muted)',
     border: '1px dashed var(--card-border)',
     borderRadius: 'var(--radius)',
   },
   tableSection: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
     padding: 'clamp(16px, 3vw, 24px)',
@@ -851,7 +859,7 @@ const styles = {
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius)',
     backgroundColor: 'var(--background)',
-    fontSize: '13px',
+    fontSize: '15px',
     outline: 'none',
     transition: 'border-color 0.2s',
   },
@@ -876,8 +884,8 @@ const styles = {
     padding: '8px 32px 8px 32px',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius)',
-    backgroundColor: '#ffffff',
-    fontSize: '13px',
+    backgroundColor: 'var(--card-bg)',
+    fontSize: '15px',
     outline: 'none',
     cursor: 'pointer',
     color: 'var(--foreground)',
@@ -892,7 +900,7 @@ const styles = {
     // Dengan ini tabel menggulir mendatar di dalam wadahnya dan tetap terbaca.
     minWidth: '760px',
     borderCollapse: 'collapse' as const,
-    fontSize: '13px',
+    fontSize: '15px',
     textAlign: 'left' as const,
   },
   th: {
@@ -900,7 +908,7 @@ const styles = {
     borderBottom: '2px solid var(--card-border)',
     fontWeight: 600,
     color: 'var(--text-muted)',
-    fontSize: '12px',
+    fontSize: '14px',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.5px',
   },
@@ -917,8 +925,10 @@ const styles = {
     wordBreak: 'break-word' as const,
   },
   td: {
-    padding: '12px 16px',
-    color: 'var(--text-muted)',
+    padding: '14px 16px',
+    // Naik dari --text-muted: isi tabel adalah data utama, bukan keterangan
+    // pendukung, jadi harus punya kontras penuh.
+    color: 'var(--foreground)',
   },
   tdDate: {
     padding: '12px 16px',
@@ -939,7 +949,7 @@ const styles = {
   badge: {
     padding: '4px 8px',
     borderRadius: '12px',
-    fontSize: '11px',
+    fontSize: '13px',
     fontWeight: 600,
   },
   emptyCell: {

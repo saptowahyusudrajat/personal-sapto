@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LogOut } from 'lucide-react';
+import { LogOut, Moon, Sun } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useTheme } from '@/components/ThemeProvider';
 
 type AuthStatus = 'loading' | 'authenticated' | 'anonymous';
 
@@ -18,6 +19,7 @@ const PUBLIC_PATHS = ['/login'];
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [email, setEmail] = useState<string>('');
 
@@ -65,9 +67,27 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
+  const themeToggle = (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      style={styles.themeBtn}
+      title={theme === 'dark' ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'}
+      aria-label={theme === 'dark' ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'}
+    >
+      {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+      <span>{theme === 'dark' ? 'Terang' : 'Gelap'}</span>
+    </button>
+  );
+
   // Halaman login tampil tanpa header/nav
   if (isPublicPath) {
-    return <main style={styles.plainMain}>{children}</main>;
+    return (
+      <main style={styles.plainMain}>
+        <div style={styles.floatingToggle}>{themeToggle}</div>
+        {children}
+      </main>
+    );
   }
 
   // Sedang dialihkan ke /login
@@ -90,8 +110,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <Link href="/" style={styles.navLink}>Dashboard</Link>
             <Link href="/add" style={styles.navLink}>+ Input Kelas & Feedback</Link>
             <Link href="/claim" style={styles.navLink}>Ekspor Klaim</Link>
+            {themeToggle}
             <button type="button" onClick={handleLogout} style={styles.logoutBtn} title={email}>
-              <LogOut size={14} /> Keluar
+              <LogOut size={16} /> Keluar
             </button>
           </nav>
         </div>
@@ -120,7 +141,8 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '40px 24px',
+    padding: 'clamp(20px, 4vw, 40px) clamp(14px, 3vw, 24px)',
+    position: 'relative' as const,
   },
   spinner: {
     width: '40px',
@@ -131,7 +153,7 @@ const styles = {
     animation: 'spin 1s linear infinite',
   },
   header: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     borderBottom: '1px solid var(--card-border)',
     position: 'sticky' as const,
     top: 0,
@@ -159,7 +181,7 @@ const styles = {
     backgroundColor: 'var(--primary-light)',
     color: 'var(--primary)',
     fontWeight: 'bold',
-    fontSize: '18px',
+    fontSize: '20px',
     width: '40px',
     height: '40px',
     borderRadius: '50%',
@@ -173,14 +195,14 @@ const styles = {
     flexDirection: 'column' as const,
   },
   title: {
-    fontSize: '18px',
+    fontSize: '20px',
     fontWeight: 700,
     color: 'var(--foreground)',
     margin: 0,
     letterSpacing: '-0.3px',
   },
   subtitle: {
-    fontSize: '12px',
+    fontSize: '14px',
     color: 'var(--text-muted)',
     margin: 0,
   },
@@ -195,7 +217,7 @@ const styles = {
     overflowX: 'auto' as const,
   },
   navLink: {
-    fontSize: '14px',
+    fontSize: '16px',
     fontWeight: 500,
     color: 'var(--text-muted)',
     textDecoration: 'none',
@@ -207,14 +229,32 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius)',
-    padding: '6px 12px',
-    fontSize: '13px',
-    fontWeight: 500,
+    padding: '8px 14px',
+    fontSize: '15px',
+    fontWeight: 600,
     color: 'var(--text-muted)',
     cursor: 'pointer',
+  },
+  themeBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    backgroundColor: 'var(--primary-light)',
+    border: '1px solid var(--card-border)',
+    borderRadius: 'var(--radius)',
+    padding: '8px 14px',
+    fontSize: '15px',
+    fontWeight: 600,
+    color: 'var(--foreground)',
+    cursor: 'pointer',
+  },
+  floatingToggle: {
+    position: 'absolute' as const,
+    top: 'clamp(16px, 3vw, 24px)',
+    right: 'clamp(16px, 3vw, 24px)',
   },
   main: {
     maxWidth: '1200px',
@@ -226,7 +266,7 @@ const styles = {
     minWidth: 0,
   },
   footer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     borderTop: '1px solid var(--card-border)',
     padding: 'clamp(16px, 3vw, 24px)',
     marginTop: 'auto',
@@ -235,14 +275,14 @@ const styles = {
     maxWidth: '1200px',
     margin: '0 auto',
     textAlign: 'center' as const,
-    fontSize: '13px',
+    fontSize: '15px',
     color: 'var(--text-muted)',
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '4px',
   },
   footerSub: {
-    fontSize: '11px',
-    color: '#a0988f',
+    fontSize: '13px',
+    color: 'var(--text-faint)',
   },
 };

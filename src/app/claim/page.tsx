@@ -234,7 +234,7 @@ export default function ClaimExport() {
                 <Clock size={16} style={{ color: 'var(--primary)' }} />
                 <div>
                   <div style={styles.statBoxLabel}>Total Jam</div>
-                  <div style={styles.statBoxValue}>{totalHours.toFixed(1)} <span style={{ fontSize: '11px' }}>Jam</span></div>
+                  <div style={styles.statBoxValue}>{totalHours.toFixed(1)} <span style={{ fontSize: '13px' }}>Jam</span></div>
                 </div>
               </div>
 
@@ -242,7 +242,7 @@ export default function ClaimExport() {
                 <Calendar size={16} style={{ color: 'var(--text-muted)' }} />
                 <div>
                   <div style={styles.statBoxLabel}>Kelas Diajar</div>
-                  <div style={styles.statBoxValue}>{sessions.length} <span style={{ fontSize: '11px' }}>Sesi</span></div>
+                  <div style={styles.statBoxValue}>{sessions.length} <span style={{ fontSize: '13px' }}>Sesi</span></div>
                 </div>
               </div>
 
@@ -331,7 +331,7 @@ export default function ClaimExport() {
         <div style={styles.emptyState}>
           <AlertCircle size={40} style={{ color: 'var(--text-muted)', marginBottom: '12px' }} />
           <h3>Tidak Ada Data Mengajar</h3>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
+          <p style={{ fontSize: '15px', color: 'var(--text-muted)', marginTop: '4px' }}>
             Belum ada riwayat mengajar Anda yang diinput pada periode <strong>{monthYearStr}</strong>.
           </p>
         </div>
@@ -352,17 +352,17 @@ const styles = {
     gap: '4px',
   },
   title: {
-    fontSize: '22px',
+    fontSize: '24px',
     fontWeight: 700,
     color: 'var(--foreground)',
     letterSpacing: '-0.5px',
   },
   subtitle: {
-    fontSize: '14px',
+    fontSize: '16px',
     color: 'var(--text-muted)',
   },
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
     padding: 'clamp(16px, 3vw, 24px)',
@@ -377,7 +377,7 @@ const styles = {
     gap: '10px',
   },
   cardTitle: {
-    fontSize: '15px',
+    fontSize: '17px',
     fontWeight: 700,
     color: 'var(--foreground)',
   },
@@ -395,7 +395,7 @@ const styles = {
     minWidth: '150px',
   },
   label: {
-    fontSize: '12px',
+    fontSize: '14px',
     fontWeight: 600,
     color: 'var(--text-muted)',
     textTransform: 'uppercase' as const,
@@ -406,18 +406,18 @@ const styles = {
     padding: '8px 12px',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius)',
-    fontSize: '13px',
+    fontSize: '15px',
     outline: 'none',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     color: 'var(--foreground)',
     cursor: 'pointer',
   },
   refreshBtn: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     border: '1px solid var(--card-border)',
     padding: '8px 16px',
     borderRadius: 'var(--radius)',
-    fontSize: '13px',
+    fontSize: '15px',
     fontWeight: 600,
     cursor: 'pointer',
     color: 'var(--text-muted)',
@@ -446,7 +446,7 @@ const styles = {
     alignItems: 'start',
   },
   previewCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
     padding: 'clamp(18px, 3.5vw, 28px)',
@@ -456,7 +456,7 @@ const styles = {
     gap: '24px',
   },
   previewCardTitle: {
-    fontSize: '15px',
+    fontSize: '17px',
     fontWeight: 700,
     color: 'var(--foreground)',
     borderBottom: '1px solid var(--card-border)',
@@ -476,11 +476,11 @@ const styles = {
     gap: '10px',
   },
   statBoxLabel: {
-    fontSize: '11px',
+    fontSize: '13px',
     color: 'var(--text-muted)',
   },
   statBoxValue: {
-    fontSize: '14px',
+    fontSize: '16px',
     fontWeight: 700,
     color: 'var(--foreground)',
   },
@@ -491,7 +491,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '10px',
-    fontSize: '13px',
+    fontSize: '15px',
   },
   calcRow: {
     display: 'flex',
@@ -500,11 +500,11 @@ const styles = {
   },
   downloadBtn: {
     backgroundColor: 'var(--success)',
-    color: '#ffffff',
+    color: 'var(--on-accent)',
     border: 'none',
     padding: '12px 24px',
     borderRadius: 'var(--radius)',
-    fontSize: '13px',
+    fontSize: '15px',
     fontWeight: 600,
     cursor: 'pointer',
     display: 'flex',
@@ -513,16 +513,16 @@ const styles = {
     gap: '8px',
   },
   downloadError: {
-    backgroundColor: '#fdf3f3',
+    backgroundColor: 'var(--error-bg)',
     color: 'var(--error)',
     padding: '10px 14px',
     borderRadius: 'var(--radius)',
-    border: '1px solid #f9dede',
-    fontSize: '12px',
+    border: '1px solid var(--error-border)',
+    fontSize: '14px',
     fontWeight: 500,
   },
   detailsCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
     padding: 'clamp(18px, 3.5vw, 28px)',
@@ -545,7 +545,7 @@ const styles = {
     padding: '12px',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius)',
-    fontSize: '13px',
+    fontSize: '15px',
   },
   sessionIndex: {
     backgroundColor: 'var(--primary-light)',
@@ -557,31 +557,31 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '11px',
+    fontSize: '13px',
   },
   sessionMateri: {
-    fontSize: '13px',
+    fontSize: '15px',
     fontWeight: 600,
     color: 'var(--foreground)',
     margin: 0,
   },
   sessionMeta: {
-    fontSize: '11px',
+    fontSize: '13px',
     color: 'var(--text-muted)',
     margin: 0,
   },
   sessionHours: {
-    fontSize: '13px',
+    fontSize: '15px',
     fontWeight: 600,
     color: 'var(--foreground)',
   },
   sessionFee: {
-    fontSize: '11px',
+    fontSize: '13px',
     color: 'var(--success)',
     fontWeight: 500,
   },
   emptyState: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
     padding: '60px 24px',

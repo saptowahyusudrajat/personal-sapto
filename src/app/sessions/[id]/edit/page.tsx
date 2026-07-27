@@ -213,7 +213,7 @@ export default function EditSession({ params }: { params: Promise<{ id: string }
       <div style={styles.emptyState}>
         <AlertCircle size={40} style={{ color: 'var(--text-muted)', marginBottom: '12px' }} />
         <h3>Sesi Tidak Ditemukan</h3>
-        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>{errorMsg}</p>
+        <p style={{ fontSize: '15px', color: 'var(--text-muted)', marginTop: '4px' }}>{errorMsg}</p>
         <Link href="/" style={styles.backLinkBtn}>Kembali ke Dashboard</Link>
       </div>
     );
@@ -450,7 +450,7 @@ const styles = {
     animation: 'spin 1s linear infinite',
   },
   emptyState: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     border: '1px dashed var(--card-border)',
     borderRadius: 'var(--radius-lg)',
     padding: '60px 24px',
@@ -463,13 +463,13 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    fontSize: '13px',
+    fontSize: '15px',
     color: 'var(--text-muted)',
     width: 'fit-content',
   },
   backLinkBtn: {
     marginTop: '16px',
-    fontSize: '13px',
+    fontSize: '15px',
     fontWeight: 600,
     color: 'var(--primary)',
   },
@@ -479,26 +479,26 @@ const styles = {
     gap: '4px',
   },
   title: {
-    fontSize: '22px',
+    fontSize: '24px',
     fontWeight: 700,
     color: 'var(--foreground)',
     letterSpacing: '-0.5px',
   },
   subtitle: {
-    fontSize: '14px',
+    fontSize: '16px',
     color: 'var(--text-muted)',
   },
   errorAlert: {
-    backgroundColor: '#fdf3f3',
+    backgroundColor: 'var(--error-bg)',
     color: 'var(--error)',
     padding: '12px 16px',
     borderRadius: 'var(--radius)',
-    border: '1px solid #f9dede',
-    fontSize: '13px',
+    border: '1px solid var(--error-border)',
+    fontSize: '15px',
     fontWeight: 500,
   },
   formCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
     padding: 'clamp(16px, 3vw, 24px)',
@@ -513,7 +513,7 @@ const styles = {
     gap: '10px',
   },
   cardTitle: {
-    fontSize: '15px',
+    fontSize: '17px',
     fontWeight: 700,
     color: 'var(--foreground)',
   },
@@ -538,7 +538,7 @@ const styles = {
     gap: '6px',
   },
   label: {
-    fontSize: '12px',
+    fontSize: '14px',
     fontWeight: 600,
     color: 'var(--text-muted)',
   },
@@ -557,7 +557,7 @@ const styles = {
     padding: '10px 12px 10px 36px',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius)',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     outline: 'none',
   },
   inputPlain: {
@@ -565,7 +565,7 @@ const styles = {
     padding: '10px 12px',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius)',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     outline: 'none',
   },
   disabledInput: {
@@ -582,7 +582,7 @@ const styles = {
     padding: '10px 12px',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius)',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     outline: 'none',
   },
   textarea: {
@@ -590,11 +590,11 @@ const styles = {
     padding: '12px',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius)',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     outline: 'none',
     resize: 'vertical' as const,
     lineHeight: 1.6,
-    fontSize: '13px',
+    fontSize: '15px',
   },
   btnRow: {
     display: 'flex',
@@ -604,21 +604,21 @@ const styles = {
     paddingTop: '20px',
   },
   cancelBtn: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--card-bg)',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius)',
     padding: '10px 20px',
-    fontSize: '14px',
+    fontSize: '16px',
     fontWeight: 500,
     cursor: 'pointer',
   },
   submitBtn: {
     backgroundColor: 'var(--primary)',
-    color: '#ffffff',
+    color: 'var(--on-accent)',
     border: 'none',
     borderRadius: 'var(--radius)',
     padding: '10px 24px',
-    fontSize: '14px',
+    fontSize: '16px',
     fontWeight: 600,
     cursor: 'pointer',
   },
