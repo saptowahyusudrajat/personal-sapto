@@ -34,6 +34,79 @@ const THIN_BORDER: ExcelJS.Borders = {
   right: { style: 'thin' }
 } as ExcelJS.Borders;
 
+/* -------------------------------------------------------------------------- *
+ * Penyesuaian lebar kolom dan tinggi baris.
+ *
+ * Lebar kolom TIDAK disalin mentah dari berkas rujukan, karena di sana kolom
+ * Materi hanya selebar 15 karakter sehingga judul kelas yang panjang pecah
+ * menjadi banyak baris. Lebar di bawah dihitung dari isi yang sebenarnya,
+ * dengan batas bawah agar judul kolom tetap muat, dan batas atas agar satu
+ * kolom tidak melebar berlebihan.
+ * -------------------------------------------------------------------------- */
+
+interface ColumnSpec {
+  header: string;
+  min: number;
+  max: number;
+  wrap: boolean;
+}
+
+const COLUMN_SPECS: ColumnSpec[] = [
+  { header: 'No.', min: 5, max: 6, wrap: false },
+  { header: 'Materi', min: 24, max: 46, wrap: true },
+  { header: 'I/O', min: 5, max: 7, wrap: false },
+  { header: 'Inst/Ast', min: 9, max: 10, wrap: false },
+  { header: 'Asst by', min: 8, max: 10, wrap: false },
+  { header: 'Date Start', min: 11, max: 13, wrap: false },
+  { header: 'Date End', min: 11, max: 13, wrap: false },
+  { header: 'Teaching Hours', min: 10, max: 12, wrap: true },
+  { header: 'Total Hours', min: 9, max: 12, wrap: true },
+  { header: 'Participant', min: 9, max: 12, wrap: true },
+  { header: 'Feedback', min: 9, max: 11, wrap: true },
+  { header: 'Fdback fee', min: 11, max: 14, wrap: false },
+  { header: 'Instansi', min: 18, max: 34, wrap: true }
+];
+
+/** Bentuk tampil tanggal pada format "d-mmm", mis. "2-Jun". Dipakai untuk
+ *  memperkirakan lebar kolom, bukan untuk mengisi sel. */
+function formatShortDate(value: string): string {
+  const d = new Date(value);
+  const short = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${d.getDate()}-${short[d.getMonth()]}`;
+}
+
+/** Perkiraan lebar tampil sebuah nilai dalam satuan karakter. */
+function displayWidth(value: string | number | null | undefined): number {
+  if (value === null || value === undefined) return 0;
+  return String(value).length;
+}
+
+/** Jumlah baris hasil pembungkusan teks pada kolom selebar `width` karakter. */
+function wrappedLineCount(text: string, width: number): number {
+  if (!text) return 1;
+  const usable = Math.max(4, width - 1);
+  let lines = 1;
+  let current = 0;
+  for (const word of String(text).split(/\s+/)) {
+    // Kata yang lebih panjang dari kolom akan dipotong sendiri oleh Excel
+    const wordLines = Math.ceil(word.length / usable);
+    if (wordLines > 1) {
+      lines += wordLines - 1;
+      current = word.length % usable;
+      continue;
+    }
+    if (current === 0) {
+      current = word.length;
+    } else if (current + 1 + word.length <= usable) {
+      current += 1 + word.length;
+    } else {
+      lines += 1;
+      current = word.length;
+    }
+  }
+  return lines;
+}
+
 export async function generateExcelClaim(
   monthYear: string,
   instructorName: string,
@@ -65,13 +138,55 @@ export async function generateExcelClaim(
    * hanya huruf tebal dan garis tepi.
    * ------------------------------------------------------------------ */
   const HEADER_ROW = 5;
-  const headers = [
-    'No.', 'Materi', 'I/O', 'Inst/Ast', 'Asst by', 'Date Start', 'Date End',
-    'Teaching Hours', 'Total Hours', 'Participant', 'Feedback', 'Fdback fee', 'Instansi'
+  const headers = COLUMN_SPECS.map(spec => spec.header);
+
+  /* Lebar kolom dihitung dari isi terpanjang di setiap kolom. Dilakukan
+     sebelum baris ditulis, karena tinggi baris bergantung pada lebar ini. */
+  const formattedDates = sessions.map(s => ({
+    start: formatShortDate(s.date_start),
+    end: formatShortDate(s.date_end)
+  }));
+
+  const contentWidths: number[][] = [
+    sessions.map((_, i) => displayWidth(i + 1)),
+    sessions.map(s => displayWidth(s.materi)),
+    sessions.map(s => displayWidth(s.io_type)),
+    sessions.map(() => displayWidth('Inst')),
+    sessions.map(() => displayWidth('-')),
+    formattedDates.map(d => displayWidth(d.start)),
+    formattedDates.map(d => displayWidth(d.end)),
+    sessions.map(s => displayWidth(s.teaching_hours)),
+    sessions.map(s => displayWidth(s.total_hours)),
+    sessions.map(s => displayWidth(s.participant_count)),
+    sessions.map(s => displayWidth(s.feedback_score)),
+    // Format akuntansi menambah tanda kurung dan jarak di kedua sisi
+    sessions.map(s => displayWidth(Number(s.feedback_fee || 0).toLocaleString('id-ID')) + 4),
+    sessions.map(s => displayWidth(s.instansi))
   ];
 
+  const columnWidths = COLUMN_SPECS.map((spec, i) => {
+    const longest = Math.max(0, ...contentWidths[i]);
+    // Judul kolom yang dibungkus boleh pecah dua baris, jadi cukup separuhnya
+    const headerNeed = spec.wrap ? Math.ceil(spec.header.length / 2) + 2 : spec.header.length + 2;
+    const width = Math.min(spec.max, Math.max(spec.min, headerNeed, longest + 2));
+    // ExcelJS menganggap 9 sebagai lebar bawaan dan tidak menuliskannya ke
+    // berkas, sehingga kolomnya malah jatuh ke lebar default Excel (8.43).
+    // Digeser sedikit supaya lebarnya benar-benar tersimpan.
+    return width === 9 ? 9.5 : width;
+  });
+
+  columnWidths.forEach((width, i) => {
+    sheet.getColumn(i + 1).width = width;
+  });
+
   sheet.getRow(HEADER_ROW).values = headers;
-  sheet.getRow(HEADER_ROW).height = 13;
+  // Tinggi kepala tabel mengikuti judul terpanjang setelah dibungkus
+  const headerLines = Math.max(
+    ...COLUMN_SPECS.map((spec, i) =>
+      spec.wrap ? wrappedLineCount(spec.header, columnWidths[i]) : 1
+    )
+  );
+  sheet.getRow(HEADER_ROW).height = Math.max(15, headerLines * 13.5);
   for (let col = 1; col <= headers.length; col++) {
     const cell = sheet.getCell(HEADER_ROW, col);
     cell.font = ARIAL_BOLD;
@@ -108,12 +223,25 @@ export async function generateExcelClaim(
     };
     row.getCell(13).value = session.instansi;
 
-    row.height = 62.5;
+    // Tinggi baris mengikuti kolom yang isinya paling banyak terbungkus.
+    // Sebelumnya dipaku 62.5 untuk semua baris, sehingga judul pendek pun
+    // menyisakan ruang kosong yang lebar.
+    const lines = Math.max(
+      wrappedLineCount(session.materi, columnWidths[1]),
+      wrappedLineCount(session.instansi, columnWidths[12])
+    );
+    row.height = Math.max(18, lines * 13.5);
+
     for (let col = 1; col <= headers.length; col++) {
       const cell = sheet.getCell(r, col);
       cell.font = ARIAL;
       cell.border = THIN_BORDER;
-      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      cell.alignment = {
+        vertical: 'middle',
+        // Teks panjang lebih terbaca rata kiri; angka dan kode tetap di tengah
+        horizontal: col === 2 || col === 13 ? 'left' : 'center',
+        wrapText: COLUMN_SPECS[col - 1].wrap
+      };
       if (col === 6 || col === 7) cell.numFmt = 'd-mmm';
       if (col === 12) cell.numFmt = CURRENCY_FMT;
     }
@@ -170,7 +298,12 @@ export async function generateExcelClaim(
       if (col === 12) cell.numFmt = CURRENCY_FMT;
       if (r === grandRow) cell.fill = GREEN;
     }
-    sheet.getCell(r, 2).alignment = { vertical: 'middle', horizontal: 'center' };
+    // Sesuai berkas rujukan: hanya GRAND TOTAL yang rata tengah, label
+    // lainnya rata kiri agar tidak mengambang di tengah rentang gabungan.
+    sheet.getCell(r, 2).alignment = {
+      vertical: 'middle',
+      horizontal: r === grandRow ? 'center' : 'left'
+    };
   });
 
   /* ------------------------------------------------------------------ *
@@ -211,12 +344,8 @@ export async function generateExcelClaim(
   });
 
   /* ------------------------------------------------------------------ *
-   * Lebar kolom, disalin dari berkas rujukan
+   * Lebar kolom sudah ditetapkan di atas, dihitung dari isi tabel.
    * ------------------------------------------------------------------ */
-  const widths = [4.18, 15.18, 3.82, 7.45, 7.45, 9.63, 9.63, 14.82, 11.36, 10.45, 10, 11.18, 10.45];
-  widths.forEach((w, i) => {
-    sheet.getColumn(i + 1).width = w;
-  });
 
   /* ------------------------------------------------------------------ *
    * Lembar kedua: aturan jenjang dan pembagian fee, sesuai arsip
