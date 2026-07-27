@@ -395,11 +395,10 @@ const styles = {
     minWidth: '150px',
   },
   label: {
-    fontSize: '14px',
+    fontSize: '15px',
     fontWeight: 600,
-    color: 'var(--text-muted)',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.5px',
+    color: 'var(--foreground)',
+    lineHeight: 1.4,
   },
   select: {
     width: '100%',

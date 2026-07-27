@@ -165,9 +165,10 @@ const styles = {
     gap: '6px',
   },
   label: {
-    fontSize: '14px',
+    fontSize: '15px',
     fontWeight: 600,
-    color: 'var(--text-muted)',
+    color: 'var(--foreground)',
+    lineHeight: 1.4,
   },
   inputWrapper: {
     position: 'relative' as const,

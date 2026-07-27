@@ -215,6 +215,14 @@ input, select, textarea {
   }
 }
 
+/* Pengaman tata letak: kolom formulir tidak boleh mendorong grid melebihi
+   lebar induknya. Kendali form punya lebar bawaan dari peramban yang bisa
+   lebih besar daripada jatah kolomnya, dan `min-width: auto` bawaan grid
+   membuat kolom menolak menyusut. */
+input, select, textarea {
+  min-width: 0;
+}
+
 /* Sorotan baris tabel saat disentuh kursor, memudahkan mengikuti satu baris
    sampai ke kolom paling kanan pada tabel yang lebar. */
 tbody tr:hover {

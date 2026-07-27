@@ -213,7 +213,7 @@ A. Nilai Materi : 4
 
         <div style={styles.formGrid}>
           {/* Row 1 */}
-          <div style={{ ...styles.formGroup, gridColumn: 'span 2' }}>
+          <div style={{ ...styles.formGroup, gridColumn: '1 / -1' }}>
             <label style={styles.label}>Materi / Judul Kelas</label>
             <div style={styles.inputWrapper}>
               <BookOpen size={16} style={styles.inputIcon} />
@@ -266,40 +266,45 @@ A. Nilai Materi : 4
           </div>
 
           <div style={styles.formGroup}>
-            <label style={styles.label}>I/O (In / Out Kota)</label>
-            <select 
-              value={ioType} 
+            <label style={styles.label}>Lokasi Kelas</label>
+            <select
+              value={ioType}
               onChange={e => setIoType(e.target.value as 'In' | 'Out')}
               style={styles.select}
             >
-              <option value="In">In (Mengajar Tidak Menginap)</option>
-              <option value="Out">Out (Luar Kota - Multiplier 1.3)</option>
+              <option value="In">In, dalam kota</option>
+              <option value="Out">Out, luar kota</option>
             </select>
+            <span style={styles.hint}>
+              {ioType === 'Out' ? 'Total jam dikali 1.3' : 'Mengajar tanpa menginap'}
+            </span>
           </div>
 
           {/* Row 3 */}
           <div style={styles.formGroup}>
-            <label style={styles.label}>Jam Mengajar (Tatap Muka)</label>
+            <label style={styles.label}>Jam Mengajar</label>
             <div style={styles.inputWrapper}>
               <Clock size={16} style={styles.inputIcon} />
-              <input 
-                type="number" 
+              <input
+                type="number"
                 value={teachingHours}
                 onChange={e => setTeachingHours(Number(e.target.value))}
                 style={styles.input}
                 min={0}
               />
             </div>
+            <span style={styles.hint}>Jam tatap muka sebenarnya</span>
           </div>
 
           <div style={styles.formGroup}>
-            <label style={styles.label}>Total Jam (Dihitung Otomatis)</label>
-            <input 
-              type="text" 
+            <label style={styles.label}>Total Jam</label>
+            <input
+              type="text"
               value={`${totalHours} Jam`}
               disabled
               style={styles.disabledInput}
             />
+            <span style={styles.hint}>Dihitung otomatis, dipakai untuk batas 50 jam</span>
           </div>
 
           <div style={styles.formGroup}>
@@ -319,27 +324,29 @@ A. Nilai Materi : 4
           {/* Row 4 */}
           <div style={styles.formGroup}>
             <label style={styles.label}>Nilai Feedback Instruktur</label>
-            <input 
-              type="number" 
-              step="0.01" 
-              min={0} 
+            <input
+              type="number"
+              step="0.01"
+              min={0}
               max={4}
               value={feedbackScore}
               onChange={e => setFeedbackScore(Number(e.target.value))}
               style={styles.inputPlain}
             />
+            <span style={styles.hint}>Skala 1 sampai 4</span>
           </div>
 
           <div style={styles.formGroup}>
-            <label style={styles.label}>
-              Feedback Fee (otomatis: &ge; {FEEDBACK_MIN_SCORE} dapat Rp {FEEDBACK_FEE.toLocaleString('id-ID')})
-            </label>
-            <input 
-              type="text" 
+            <label style={styles.label}>Feedback Fee</label>
+            <input
+              type="text"
               value={`Rp ${feedbackFee.toLocaleString('id-ID')}`}
               disabled
               style={styles.disabledInput}
             />
+            <span style={styles.hint}>
+              Nilai &ge; {FEEDBACK_MIN_SCORE} dapat Rp {FEEDBACK_FEE.toLocaleString('id-ID')}
+            </span>
           </div>
         </div>
 
@@ -494,11 +501,18 @@ const styles = {
     gap: '6px',
   },
   label: {
-    fontSize: '14px',
+    // Bukan huruf kapital semua: label seperti "Total Jam (dihitung otomatis)"
+    // jadi jauh lebih panjang dan pecah sampai tiga baris di layar ponsel.
+    fontSize: '15px',
     fontWeight: 600,
+    color: 'var(--foreground)',
+    lineHeight: 1.4,
+  },
+  // Keterangan pendukung dipindah ke bawah kolom, bukan menumpuk di label
+  hint: {
+    fontSize: '13px',
     color: 'var(--text-muted)',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.5px',
+    lineHeight: 1.4,
   },
   inputWrapper: {
     position: 'relative' as const,
