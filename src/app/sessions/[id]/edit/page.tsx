@@ -501,7 +501,7 @@ const styles = {
     backgroundColor: '#ffffff',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
-    padding: '24px',
+    padding: 'clamp(16px, 3vw, 24px)',
     boxShadow: 'var(--shadow-sm)',
     display: 'flex',
     flexDirection: 'column' as const,

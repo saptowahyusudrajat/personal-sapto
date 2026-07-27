@@ -30,6 +30,27 @@ html, body {
   background-color: var(--background);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  /* Halaman tidak boleh menggulir mendatar. Yang perlu digulir (mis. tabel)
+     menggulir di dalam wadahnya sendiri, bukan menyeret seluruh layout. */
+  overflow-x: hidden;
+}
+
+/* Judul panjang tanpa spasi (nama materi, email) tidak boleh melebar keluar layar */
+h1, h2, h3, h4, p, span, td, th, label {
+  overflow-wrap: break-word;
+}
+
+/* Kendali form menyesuaikan lebar induknya, bukan lebar bawaan peramban.
+   Tanpa ini, <select> dan <input> kerap memaksa lebar minimum di ponsel. */
+input, select, textarea, button {
+  max-width: 100%;
+}
+
+/* Sasaran sentuh yang nyaman di layar sentuh */
+@media (max-width: 640px) {
+  button, select, input[type="date"] {
+    min-height: 40px;
+  }
 }
 
 body {

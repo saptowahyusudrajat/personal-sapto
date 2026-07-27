@@ -424,7 +424,7 @@ const styles = {
     backgroundColor: '#ffffff',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
-    padding: '24px',
+    padding: 'clamp(16px, 3vw, 24px)',
     boxShadow: 'var(--shadow-sm)',
     display: 'flex',
     flexDirection: 'column' as const,
@@ -477,7 +477,7 @@ const styles = {
     backgroundColor: '#ffffff',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
-    padding: '28px',
+    padding: 'clamp(18px, 3.5vw, 28px)',
     boxShadow: 'var(--shadow-sm)',
     display: 'flex',
     flexDirection: 'column' as const,
@@ -485,7 +485,7 @@ const styles = {
   },
   formGrid: {
     display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
     gap: '20px',
   },
   formGroup: {

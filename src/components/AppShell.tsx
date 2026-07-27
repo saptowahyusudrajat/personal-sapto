@@ -141,12 +141,12 @@ const styles = {
   headerContainer: {
     maxWidth: '1200px',
     margin: '0 auto',
-    padding: '16px 24px',
+    padding: 'clamp(12px, 2.5vw, 16px) clamp(16px, 3vw, 24px)',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     flexWrap: 'wrap' as const,
-    gap: '16px',
+    gap: '12px',
   },
   logo: {
     display: 'flex',
@@ -186,8 +186,13 @@ const styles = {
   },
   nav: {
     display: 'flex',
-    gap: '16px',
+    gap: '8px',
     alignItems: 'center',
+    flexWrap: 'wrap' as const,
+    // Di layar sempit menu turun ke baris sendiri dan tetap bisa digulir
+    // mendatar bila masih belum muat.
+    maxWidth: '100%',
+    overflowX: 'auto' as const,
   },
   navLink: {
     fontSize: '14px',
@@ -215,13 +220,15 @@ const styles = {
     maxWidth: '1200px',
     width: '100%',
     margin: '0 auto',
-    padding: '40px 24px',
+    padding: 'clamp(20px, 4vw, 40px) clamp(14px, 3vw, 24px)',
     flex: 1,
+    // Cegah isi yang lebih lebar dari layar mendorong seluruh halaman
+    minWidth: 0,
   },
   footer: {
     backgroundColor: '#ffffff',
     borderTop: '1px solid var(--card-border)',
-    padding: '24px',
+    padding: 'clamp(16px, 3vw, 24px)',
     marginTop: 'auto',
   },
   footerContainer: {

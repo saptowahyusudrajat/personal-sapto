@@ -365,7 +365,7 @@ const styles = {
     backgroundColor: '#ffffff',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
-    padding: '24px',
+    padding: 'clamp(16px, 3vw, 24px)',
     boxShadow: 'var(--shadow-sm)',
     display: 'flex',
     flexDirection: 'column' as const,
@@ -440,7 +440,8 @@ const styles = {
   },
   previewGrid: {
     display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
+    // Runtuh jadi satu kolom saat lebar tak lagi cukup, tanpa perlu media query
+    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
     gap: '24px',
     alignItems: 'start',
   },
@@ -448,7 +449,7 @@ const styles = {
     backgroundColor: '#ffffff',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
-    padding: '28px',
+    padding: 'clamp(18px, 3.5vw, 28px)',
     boxShadow: 'var(--shadow-sm)',
     display: 'flex',
     flexDirection: 'column' as const,
@@ -463,7 +464,7 @@ const styles = {
   },
   statsPreviewGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
     gap: '12px',
   },
   statBox: {
@@ -524,7 +525,7 @@ const styles = {
     backgroundColor: '#ffffff',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
-    padding: '28px',
+    padding: 'clamp(18px, 3.5vw, 28px)',
     boxShadow: 'var(--shadow-sm)',
     display: 'flex',
     flexDirection: 'column' as const,

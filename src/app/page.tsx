@@ -581,11 +581,11 @@ const styles = {
     backgroundColor: '#ffffff',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
-    padding: '32px',
+    padding: 'clamp(20px, 4vw, 32px)',
     boxShadow: 'var(--shadow-sm)',
   },
   heroTitle: {
-    fontSize: '24px',
+    fontSize: 'clamp(19px, 3.2vw, 24px)',
     fontWeight: 700,
     color: 'var(--foreground)',
     marginBottom: '8px',
@@ -601,7 +601,7 @@ const styles = {
     backgroundColor: '#ffffff',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
-    padding: '24px',
+    padding: 'clamp(16px, 3vw, 24px)',
     boxShadow: 'var(--shadow-sm)',
     display: 'flex',
     flexDirection: 'column' as const,
@@ -694,7 +694,7 @@ const styles = {
     backgroundColor: '#ffffff',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
-    padding: '24px',
+    padding: 'clamp(16px, 3vw, 24px)',
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '12px',
@@ -714,9 +714,11 @@ const styles = {
     letterSpacing: '0.5px',
   },
   cardValue: {
-    fontSize: '24px',
+    fontSize: 'clamp(20px, 2.6vw, 24px)',
     fontWeight: 700,
     color: 'var(--foreground)',
+    // Nominal rupiah panjang tidak boleh mendorong lebar kartu
+    overflowWrap: 'anywhere' as const,
   },
   valueUnit: {
     fontSize: '14px',
@@ -736,7 +738,7 @@ const styles = {
     backgroundColor: '#ffffff',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
-    padding: '24px',
+    padding: 'clamp(16px, 3vw, 24px)',
     boxShadow: 'var(--shadow-sm)',
   },
   sectionTitle: {
@@ -812,7 +814,7 @@ const styles = {
     backgroundColor: '#ffffff',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
-    padding: '24px',
+    padding: 'clamp(16px, 3vw, 24px)',
     boxShadow: 'var(--shadow-sm)',
   },
   tableHeaderSection: {
@@ -886,6 +888,9 @@ const styles = {
   },
   table: {
     width: '100%',
+    // Tanpa lebar minimum, 8 kolom akan saling menghimpit di layar ponsel.
+    // Dengan ini tabel menggulir mendatar di dalam wadahnya dan tetap terbaca.
+    minWidth: '760px',
     borderCollapse: 'collapse' as const,
     fontSize: '13px',
     textAlign: 'left' as const,

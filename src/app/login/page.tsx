@@ -133,7 +133,7 @@ const styles = {
     backgroundColor: '#ffffff',
     border: '1px solid var(--card-border)',
     borderRadius: 'var(--radius-lg)',
-    padding: '28px',
+    padding: 'clamp(18px, 3.5vw, 28px)',
     boxShadow: 'var(--shadow-md)',
     display: 'flex',
     flexDirection: 'column' as const,
