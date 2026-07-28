@@ -50,6 +50,34 @@ B. Jalankan skrip import dengan perintah:
 C. Skrip akan otomatis mengimpor 35 baris data sesi mengajar yang valid.
 
 ------------------------------------------------------------------------
+2B. MENCADANGKAN DATA (LAKUKAN SECARA BERKALA)
+------------------------------------------------------------------------
+Seluruh riwayat mengajar Anda hanya hidup di satu proyek Supabase. Proyek
+gratis bisa dijeda bila lama tidak aktif, dan bila terhapus tidak ada
+salinan lain. Sediakan cadangan sendiri.
+
+Caranya: buka menu "Ekspor Klaim", gulir ke bagian "Cadangan Data".
+Tersedia dua pilihan:
+
+A. Cadangan lengkap (JSON)  <-- pakai ini untuk cadangan sesungguhnya
+   Berisi tabel sessions DAN feedbacks, termasuk teks feedback aslinya.
+   Nama berkas: cadangan-teaching-portal-2026-07-27.json
+
+B. Daftar sesi (CSV)
+   Hanya tabel sessions, bisa dibuka di Excel. Urutan kolomnya sengaja
+   dibuat sama persis dengan "migrasi_sessions_fixed.csv", sehingga bisa
+   diimpor kembali memakai "node import-csv.js" (ganti nama berkasnya
+   dulu, atau sesuaikan csvPath di dalam skrip).
+   Nama berkas: cadangan-sesi-2026-07-27.csv
+
+Simpan hasil unduhan di tempat lain, misalnya Google Drive atau OneDrive.
+Cadangan yang disimpan di komputer yang sama tidak menolong bila
+komputernya rusak.
+
+Saran ritme: setiap selesai mengekspor klaim bulanan, sekalian unduh
+cadangan JSON-nya.
+
+------------------------------------------------------------------------
 3. LOGIN & KEAMANAN DATA (SUPABASE AUTH + ROW-LEVEL SECURITY / RLS)
 ------------------------------------------------------------------------
 Portal ini memuat data honor dan klaim mengajar Anda. Karena aplikasi

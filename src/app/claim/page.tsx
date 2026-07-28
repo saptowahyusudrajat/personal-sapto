@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { calculateClaimSummary } from '@/lib/feeCalculator';
 import { claimFileName } from '@/lib/claimFile';
+import BackupCard from '@/components/BackupCard';
 import {
   FileSpreadsheet,
   Calendar,
@@ -337,6 +338,10 @@ export default function ClaimExport() {
           </p>
         </div>
       )}
+
+      {/* Pencadangan tidak bergantung pada periode yang dipilih, jadi selalu
+          ditampilkan walau bulan ini kosong. */}
+      <BackupCard />
     </div>
   );
 }
