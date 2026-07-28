@@ -14,7 +14,14 @@ import {
   MessageSquare,
   AlertCircle
 } from 'lucide-react';
-import { calculateFeedbackFee, FEEDBACK_FEE, FEEDBACK_MIN_SCORE, MANDATORY_HOURS } from '@/lib/feeCalculator';
+import {
+  calculateFeedbackFee,
+  FEEDBACK_FEE,
+  FEEDBACK_MIN_SCORE,
+  MANDATORY_HOURS,
+  HOURS_PER_DAY
+} from '@/lib/feeCalculator';
+import { countDays } from '@/lib/dateParser';
 
 interface FeedbackForm {
   score_materi: string;
@@ -72,6 +79,24 @@ export default function EditSession({ params }: { params: Promise<{ id: string }
   const totalHours =
     ioType === 'Out' ? Number((Number(teachingHours || 0) * 1.3).toFixed(1)) : Number(teachingHours || 0);
   const feedbackFee = calculateFeedbackFee(feedbackScore);
+
+  const classDays = dateStart && dateEnd ? countDays(dateStart, dateEnd) : 0;
+  const suggestedHours = classDays * HOURS_PER_DAY;
+
+  /**
+   * Saat tanggal diubah, jam mengajar ikut diperkirakan ulang dari jumlah hari.
+   * Hanya berlaku untuk perubahan oleh pengguna: pengisian awal dari database
+   * memakai setDateStart/setDateEnd langsung agar jam yang tersimpan tidak
+   * tertimpa perkiraan.
+   */
+  const applyDates = (nextStart: string, nextEnd: string) => {
+    setDateStart(nextStart);
+    setDateEnd(nextEnd);
+    if (nextStart && nextEnd) {
+      const days = countDays(nextStart, nextEnd);
+      if (days > 0) setTeachingHours(days * HOURS_PER_DAY);
+    }
+  };
 
   // Field feedback rinci
   const [feedbackForm, setFeedbackForm] = useState<FeedbackForm>(EMPTY_FEEDBACK);
@@ -287,7 +312,7 @@ export default function EditSession({ params }: { params: Promise<{ id: string }
             <input
               type="date"
               value={dateStart}
-              onChange={e => setDateStart(e.target.value)}
+              onChange={e => applyDates(e.target.value, dateEnd)}
               style={styles.inputPlain}
               required
             />
@@ -298,7 +323,7 @@ export default function EditSession({ params }: { params: Promise<{ id: string }
             <input
               type="date"
               value={dateEnd}
-              onChange={e => setDateEnd(e.target.value)}
+              onChange={e => applyDates(dateStart, e.target.value)}
               style={styles.inputPlain}
               required
             />
@@ -332,6 +357,22 @@ export default function EditSession({ params }: { params: Promise<{ id: string }
                 min={0}
               />
             </div>
+            {classDays > 0 && (
+              <span style={styles.hint}>
+                {classDays} hari kelas.{' '}
+                {teachingHours === suggestedHours ? (
+                  `Setara ${HOURS_PER_DAY} jam per hari.`
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setTeachingHours(suggestedHours)}
+                    style={styles.linkBtn}
+                  >
+                    Hitung dari tanggal ({suggestedHours} jam)
+                  </button>
+                )}
+              </span>
+            )}
           </div>
 
           <div style={styles.formGroup}>
@@ -553,6 +594,16 @@ const styles = {
     fontSize: '13px',
     color: 'var(--text-muted)',
     lineHeight: 1.4,
+  },
+  linkBtn: {
+    background: 'none',
+    border: 'none',
+    padding: 0,
+    fontSize: '13px',
+    fontWeight: 600,
+    color: 'var(--primary)',
+    textDecoration: 'underline',
+    cursor: 'pointer',
   },
   inputWrapper: {
     position: 'relative' as const,

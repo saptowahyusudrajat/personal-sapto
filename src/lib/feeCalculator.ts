@@ -16,6 +16,17 @@ export const EXTRA_HOUR_RATE = 30000;
 export const FEEDBACK_FEE = 75000;
 export const FEEDBACK_MIN_SCORE = 3.3;
 
+/**
+ * Perkiraan jam mengajar per hari kelas, dipakai untuk mengisi otomatis
+ * kolom Jam Mengajar dari rentang tanggal.
+ *
+ * Ini DUGAAN AWAL, bukan aturan pasti. Dari 40 sesi yang sudah tercatat,
+ * 23 sesi (57%) memang 5 jam per hari, sisanya bervariasi: sejumlah kelas
+ * 6 jam per hari dan kelas MOS sampai 8 jam per hari. Karena itu nilainya
+ * selalu bisa ditimpa manual di formulir.
+ */
+export const HOURS_PER_DAY = 5;
+
 /** Feedback fee per sesi: penuh bila nilai instruktur mencapai ambang, 0 bila tidak. */
 export function calculateFeedbackFee(score: number | string | null): number {
   return Number(score || 0) >= FEEDBACK_MIN_SCORE ? FEEDBACK_FEE : 0;

@@ -36,7 +36,7 @@ export default function LoginPage() {
   return (
     <div style={styles.wrapper}>
       <div style={styles.brand}>
-        <span style={styles.logoBadge}>SW</span>
+        <span style={styles.logoBadge}>SSW</span>
         <div>
           <h1 style={styles.brandTitle}>Teaching Portal</h1>
           <p style={styles.brandSubtitle}>Sapto Wahyu Sudrajat &bull; INIXINDO Surabaya</p>
@@ -111,9 +111,12 @@ const styles = {
     backgroundColor: 'var(--primary-light)',
     color: 'var(--primary)',
     fontWeight: 'bold',
-    fontSize: '20px',
+    // Tiga huruf, jadi ukurannya diturunkan agar tetap muat di lingkaran
+    fontSize: '15px',
+    letterSpacing: '-0.3px',
     width: '44px',
     height: '44px',
+    flexShrink: 0,
     borderRadius: '50%',
     display: 'flex',
     alignItems: 'center',

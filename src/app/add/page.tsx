@@ -15,7 +15,9 @@ import {
 } from 'lucide-react';
 import { parseFeedback } from '@/lib/parser';
 import { parsePeriode } from '@/lib/dateParser';
-import { calculateFeedbackFee, FEEDBACK_FEE, FEEDBACK_MIN_SCORE } from '@/lib/feeCalculator';
+
+import { calculateFeedbackFee, FEEDBACK_FEE, FEEDBACK_MIN_SCORE, HOURS_PER_DAY } from '@/lib/feeCalculator';
+import { countDays } from '@/lib/dateParser';
 
 export default function AddSession() {
   const router = useRouter();
@@ -30,16 +32,36 @@ export default function AddSession() {
   const [dateEnd, setDateEnd] = useState('');
   const [ioType, setIoType] = useState<'In' | 'Out'>('In');
   const [instansi, setInstansi] = useState('');
-  const [teachingHours, setTeachingHours] = useState<number>(20);
+  const [teachingHours, setTeachingHours] = useState<number>(0);
   const [participantCount, setParticipantCount] = useState<number>(1);
   const [feedbackScore, setFeedbackScore] = useState<number>(4);
   const [warningMsg, setWarningMsg] = useState('');
+  // Begitu jam diisi manual, pengisian otomatis dari tanggal berhenti agar
+  // angka yang Anda ketik sendiri tidak tertimpa.
+  const [hoursEditedManually, setHoursEditedManually] = useState(false);
 
   // Nilai turunan: dihitung ulang tiap render, bukan disimpan sebagai state.
   // Total Hours mengikuti multiplier 1.3 untuk kelas luar kota (Out).
   const totalHours =
     ioType === 'Out' ? Number((Number(teachingHours || 0) * 1.3).toFixed(1)) : Number(teachingHours || 0);
   const feedbackFee = calculateFeedbackFee(feedbackScore);
+
+  const classDays = dateStart && dateEnd ? countDays(dateStart, dateEnd) : 0;
+  const suggestedHours = classDays * HOURS_PER_DAY;
+
+  /**
+   * Mengisi tanggal sekaligus memperkirakan jam mengajar dari jumlah harinya.
+   * Perkiraan dilewati bila jam sudah diisi manual.
+   */
+  const applyDates = (nextStart: string, nextEnd: string, force = false) => {
+    setDateStart(nextStart);
+    setDateEnd(nextEnd);
+    if (nextStart && nextEnd && (force || !hoursEditedManually)) {
+      const days = countDays(nextStart, nextEnd);
+      if (days > 0) setTeachingHours(days * HOURS_PER_DAY);
+      if (force) setHoursEditedManually(false);
+    }
+  };
 
   // Magic Paste Handler
   const handleMagicParse = () => {
@@ -66,8 +88,8 @@ export default function AddSession() {
       // Mendukung rentang dalam satu bulan, lintas bulan, lintas tahun, dan kelas satu hari.
       const period = parsePeriode(parsed.periode);
       if (period) {
-        setDateStart(period.dateStart);
-        setDateEnd(period.dateEnd);
+        // Magic Paste selalu menghitung ulang jam mengajar dari jumlah hari
+        applyDates(period.dateStart, period.dateEnd, true);
         setWarningMsg('');
       } else {
         // Jangan gagal diam-diam: beri tahu agar tanggal diisi manual
@@ -245,10 +267,10 @@ A. Nilai Materi : 4
           {/* Row 2 */}
           <div style={styles.formGroup}>
             <label style={styles.label}>Tanggal Mulai</label>
-            <input 
-              type="date" 
+            <input
+              type="date"
               value={dateStart}
-              onChange={e => setDateStart(e.target.value)}
+              onChange={e => applyDates(e.target.value, dateEnd)}
               style={styles.inputPlain}
               required
             />
@@ -256,13 +278,16 @@ A. Nilai Materi : 4
 
           <div style={styles.formGroup}>
             <label style={styles.label}>Tanggal Selesai</label>
-            <input 
-              type="date" 
+            <input
+              type="date"
               value={dateEnd}
-              onChange={e => setDateEnd(e.target.value)}
+              onChange={e => applyDates(dateStart, e.target.value)}
               style={styles.inputPlain}
               required
             />
+            {classDays > 0 && (
+              <span style={styles.hint}>Lama kelas {classDays} hari</span>
+            )}
           </div>
 
           <div style={styles.formGroup}>
@@ -287,13 +312,40 @@ A. Nilai Materi : 4
               <Clock size={16} style={styles.inputIcon} />
               <input
                 type="number"
+                step="0.5"
                 value={teachingHours}
-                onChange={e => setTeachingHours(Number(e.target.value))}
+                onChange={e => {
+                  setTeachingHours(Number(e.target.value));
+                  setHoursEditedManually(true);
+                }}
                 style={styles.input}
                 min={0}
               />
             </div>
-            <span style={styles.hint}>Jam tatap muka sebenarnya</span>
+            {classDays > 0 ? (
+              hoursEditedManually && teachingHours !== suggestedHours ? (
+                <span style={styles.hint}>
+                  Diisi manual.{' '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTeachingHours(suggestedHours);
+                      setHoursEditedManually(false);
+                    }}
+                    style={styles.linkBtn}
+                  >
+                    Hitung ulang dari tanggal ({suggestedHours} jam)
+                  </button>
+                </span>
+              ) : (
+                <span style={styles.hint}>
+                  Terisi otomatis: {classDays} hari &times; {HOURS_PER_DAY} jam. Ubah bila kelas ini
+                  tidak {HOURS_PER_DAY} jam per hari.
+                </span>
+              )
+            ) : (
+              <span style={styles.hint}>Terisi otomatis dari tanggal setelah periode diisi</span>
+            )}
           </div>
 
           <div style={styles.formGroup}>
@@ -513,6 +565,16 @@ const styles = {
     fontSize: '13px',
     color: 'var(--text-muted)',
     lineHeight: 1.4,
+  },
+  linkBtn: {
+    background: 'none',
+    border: 'none',
+    padding: 0,
+    fontSize: '13px',
+    fontWeight: 600,
+    color: 'var(--primary)',
+    textDecoration: 'underline',
+    cursor: 'pointer',
   },
   inputWrapper: {
     position: 'relative' as const,

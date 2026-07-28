@@ -160,6 +160,20 @@ C. Kelas Out (luar kota)
    Total Hours = Jam Tatap Muka x 1.3. Nilai inilah yang dipakai untuk
    menghitung batas 50 jam.
 
+C2. Pengisian otomatis Jam Mengajar
+   Saat Magic Paste membaca baris "Periode", jumlah hari kelas dihitung
+   lalu Jam Mengajar diisi otomatis = jumlah hari x 5 jam.
+   Contoh: "21 - 23 Juli 2026" -> 3 hari -> 15 jam.
+
+   INI HANYA DUGAAN AWAL, bukan aturan pasti. Dari 40 sesi yang sudah
+   tercatat, hanya 23 sesi (57%) yang benar-benar 5 jam per hari; ada
+   kelas 6 jam per hari, dan kelas MOS sampai 8 jam per hari. Karena itu
+   kolom Jam Mengajar tetap bisa diubah manual, dan begitu diubah, angka
+   Anda tidak akan tertimpa lagi. Tersedia tautan "Hitung ulang dari
+   tanggal" bila ingin kembali ke perkiraan.
+
+   Angkanya diatur lewat HOURS_PER_DAY di src/lib/feeCalculator.ts.
+
 D. KELAS LINTAS BULAN  <-- PENTING
    Sesi diklaim PENUH pada bulan TANGGAL MULAI-nya, tidak dipecah.
    Contoh: kelas 29 Januari - 2 Februari dengan 30 jam, seluruh 30 jam
