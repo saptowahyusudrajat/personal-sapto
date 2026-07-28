@@ -576,7 +576,7 @@ export default function Dashboard() {
                 <th style={styles.th}>Tanggal</th>
                 <th style={styles.th}>I/O</th>
                 <th style={styles.th}>Jam</th>
-                <th style={styles.th}>Siswa</th>
+                <th style={styles.th}>Peserta</th>
                 <th style={styles.th}>Feedback</th>
               </tr>
             </thead>
