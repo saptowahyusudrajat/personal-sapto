@@ -34,7 +34,11 @@ export function calculateFeedbackFee(score: number | string | null): number {
 
 export interface FeeInput {
   total_hours: number | string | null;
-  feedback_fee: number | string | null;
+  /**
+   * Opsional: pemanggil yang hanya butuh perhitungan jam (mis. widget progres
+   * di dashboard) tidak perlu ikut mengambil kolom rupiah dari database.
+   */
+  feedback_fee?: number | string | null;
 }
 
 export interface ClaimSummary {
@@ -93,9 +97,8 @@ export function calculateClaimSummary(sessions: FeeInput[]): ClaimSummary {
  * (mis. 29 Januari - 2 Februari) dihitung PENUH di bulan tanggal mulainya,
  * sama seperti penyaringan pada ekspor klaim.
  */
-export function calculateClaimSummaryByMonth<T extends FeeInput & { date_start: string }>(
-  sessions: T[]
-): ClaimSummary {
+/** Mengelompokkan sesi per bulan berdasarkan tanggal mulainya. */
+function groupByMonth<T extends { date_start: string }>(sessions: T[]): Map<string, T[]> {
   const groups = new Map<string, T[]>();
   sessions.forEach(s => {
     const d = new Date(s.date_start);
@@ -107,8 +110,35 @@ export function calculateClaimSummaryByMonth<T extends FeeInput & { date_start: 
       groups.set(key, [s]);
     }
   });
+  return groups;
+}
 
-  const monthly = Array.from(groups.values()).map(calculateClaimSummary);
+export interface MonthlyClaim extends ClaimSummary {
+  /** Kunci "YYYY-MM" dengan bulan 1-based, aman untuk diurutkan sebagai teks */
+  monthKey: string;
+  sessionCount: number;
+}
+
+/**
+ * Rincian klaim bulan per bulan, terbaru lebih dulu. Dipakai halaman Rekap Fee
+ * untuk memperlihatkan dari bulan mana saja nominalnya berasal.
+ */
+export function calculateMonthlyClaims<T extends FeeInput & { date_start: string }>(
+  sessions: T[]
+): MonthlyClaim[] {
+  return Array.from(groupByMonth(sessions).entries())
+    .map(([monthKey, rows]) => ({
+      monthKey,
+      sessionCount: rows.length,
+      ...calculateClaimSummary(rows)
+    }))
+    .sort((a, b) => b.monthKey.localeCompare(a.monthKey));
+}
+
+export function calculateClaimSummaryByMonth<T extends FeeInput & { date_start: string }>(
+  sessions: T[]
+): ClaimSummary {
+  const monthly = Array.from(groupByMonth(sessions).values()).map(calculateClaimSummary);
 
   const sum = (pick: (s: ClaimSummary) => number) =>
     monthly.reduce((acc, curr) => acc + pick(curr), 0);

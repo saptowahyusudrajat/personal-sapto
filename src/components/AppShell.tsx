@@ -127,6 +127,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <Link href="/claim" style={navLinkStyle('/claim')}>
               {isNarrow ? 'Klaim' : 'Ekspor Klaim'}
             </Link>
+            {/* Semua nominal rupiah dikumpulkan di sini, terpisah dari Dashboard */}
+            <Link href="/fee" style={navLinkStyle('/fee')}>
+              {isNarrow ? 'Fee' : 'Rekap Fee'}
+            </Link>
             {themeToggle}
             <button type="button" onClick={handleLogout} style={styles.logoutBtn} title={email}>
               <LogOut size={18} />

@@ -14,9 +14,10 @@ import {
   Clock,
   Award,
   MessageSquare,
+  CalendarDays,
   AlertCircle
 } from 'lucide-react';
-import { FEEDBACK_MIN_SCORE, EXTRA_HOUR_RATE } from '@/lib/feeCalculator';
+import { FEEDBACK_MIN_SCORE } from '@/lib/feeCalculator';
 import { countDays } from '@/lib/dateParser';
 
 interface Session {
@@ -30,7 +31,8 @@ interface Session {
   total_hours: number;
   participant_count: number;
   feedback_score: number;
-  feedback_fee: number;
+  // feedback_fee sengaja tidak dicantumkan: halaman ini tidak menampilkan
+  // nominal apa pun. Angkanya ada di halaman Rekap Fee.
 }
 
 interface Feedback {
@@ -240,11 +242,13 @@ export default function SessionDetail({ params }: { params: Promise<{ id: string
           </div>
         </div>
 
+        {/* Kartu ini dulu menampilkan Feedback Fee. Nominal dipindah ke halaman
+            Rekap Fee agar halaman sesi aman ditampilkan ke orang lain. */}
         <div style={styles.statCard}>
-          <div style={styles.statHeader}>Feedback Fee</div>
-          <div style={styles.statValue}>Rp {Number(session.feedback_fee || 0).toLocaleString('id-ID')}</div>
+          <div style={styles.statHeader}><CalendarDays size={16} style={{ color: 'var(--primary)' }} /> Lama Kelas</div>
+          <div style={styles.statValue}>{days || '-'}</div>
           <div style={styles.statLabel}>
-            Jam sesi ini ikut menghitung extra fee Rp {EXTRA_HOUR_RATE.toLocaleString('id-ID')}/jam
+            {days > 0 ? `Hari, ${(Number(session.teaching_hours) / days).toFixed(1)} jam per hari` : 'Tanggal belum lengkap'}
           </div>
         </div>
       </div>

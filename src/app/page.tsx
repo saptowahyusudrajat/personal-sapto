@@ -5,18 +5,14 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useTheme, chartColors } from '@/components/ThemeProvider';
 import { useIsNarrow } from '@/components/useMediaQuery';
+// Dashboard sengaja tidak mengimpor apa pun yang menghasilkan nominal rupiah.
+// Perhitungan fee ada di halaman Rekap Fee (src/app/fee/page.tsx).
+import { calculateClaimSummary, MANDATORY_HOURS, FEEDBACK_MIN_SCORE } from '@/lib/feeCalculator';
 import {
-  calculateClaimSummary,
-  calculateClaimSummaryByMonth,
-  MANDATORY_HOURS,
-  EXTRA_HOUR_RATE,
-  FEEDBACK_MIN_SCORE
-} from '@/lib/feeCalculator';
-import {
-  Award, 
-  BookOpen, 
-  Clock, 
-  DollarSign, 
+  Award,
+  BookOpen,
+  Clock,
+  Users,
   Search,
   SlidersHorizontal,
   Target
@@ -72,7 +68,6 @@ interface Session {
   total_hours: number;
   participant_count: number;
   feedback_score: number;
-  feedback_fee: number;
 }
 
 export default function Dashboard() {
@@ -139,10 +134,12 @@ export default function Dashboard() {
   const totalSessions = filteredSessions.length;
   const totalTeachingHours = filteredSessions.reduce((acc, curr) => acc + Number(curr.teaching_hours || 0), 0);
   const totalHoursWithIO = filteredSessions.reduce((acc, curr) => acc + Number(curr.total_hours || 0), 0);
-  // Batas mandatory 50 jam berlaku per bulan, jadi kelebihan jam diakumulasi per bulan
-  const { totalFeedbackFee, extraHours, extraHoursFee, grandTotalFee } =
-    calculateClaimSummaryByMonth(filteredSessions);
   const uniqueMateri = new Set(filteredSessions.map(s => s.materi)).size;
+  const totalParticipants = filteredSessions.reduce(
+    (acc, curr) => acc + Number(curr.participant_count || 0),
+    0
+  );
+  const uniqueInstansi = new Set(filteredSessions.map(s => s.instansi).filter(Boolean)).size;
   const scoredSessions = filteredSessions.filter(s => Number(s.feedback_score) > 0);
   const avgFeedback =
     scoredSessions.reduce((acc, curr) => acc + Number(curr.feedback_score || 0), 0) /
@@ -257,7 +254,7 @@ export default function Dashboard() {
               Progres Jam Mengajar {progressMonth}
             </h3>
             <p style={styles.progressSubtitle}>
-              Batas mandatory {MANDATORY_HOURS} jam. Kelebihannya dibayar Rp {EXTRA_HOUR_RATE.toLocaleString('id-ID')}/jam.
+              Batas mandatory {MANDATORY_HOURS} jam per bulan.
             </p>
           </div>
           <div style={styles.progressFigure}>
@@ -276,22 +273,22 @@ export default function Dashboard() {
           />
         </div>
 
+        {/* Nominal rupiah sengaja tidak ditampilkan di sini; seluruhnya ada di
+            halaman Rekap Fee agar dashboard aman dipresentasikan. */}
         <div style={styles.progressFooter}>
           {progress.totalHours === 0 ? (
             <span>Belum ada sesi mengajar tercatat pada {progressMonth}.</span>
           ) : progress.extraHours > 0 ? (
             <span style={{ color: 'var(--success)', fontWeight: 600 }}>
-              Batas mandatory terlampaui {progress.extraHours.toFixed(1)} jam &rarr; extra fee Rp{' '}
-              {progress.extraHoursFee.toLocaleString('id-ID')}
+              Batas mandatory terlampaui {progress.extraHours.toFixed(1)} jam
             </span>
           ) : (
             <span>
-              Kurang <strong>{hoursToMandatory.toFixed(1)} jam</strong> lagi menuju batas mandatory. Setiap
-              jam setelahnya bernilai Rp {EXTRA_HOUR_RATE.toLocaleString('id-ID')}.
+              Kurang <strong>{hoursToMandatory.toFixed(1)} jam</strong> lagi menuju batas mandatory.
             </span>
           )}
           <span style={styles.progressFooterRight}>
-            {progressSessions.length} sesi &bull; feedback fee Rp {progress.totalFeedbackFee.toLocaleString('id-ID')}
+            {progressSessions.length} sesi pada {progressMonth}
           </span>
         </div>
       </div>
@@ -333,15 +330,17 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Kartu ini dulu menampilkan Total Fee Klaim. Nominalnya dipindah ke
+            halaman Rekap Fee, digantikan angka yang aman dipresentasikan. */}
         <div style={styles.card}>
           <div style={styles.cardHeader}>
-            <DollarSign size={20} style={{ color: 'var(--accent)' }} />
-            <span style={styles.cardTitle}>Total Fee Klaim</span>
+            <Users size={20} style={{ color: 'var(--accent)' }} />
+            <span style={styles.cardTitle}>Peserta Dilatih</span>
           </div>
-          <div style={styles.cardValue}>Rp {grandTotalFee.toLocaleString('id-ID')}</div>
-          <div style={styles.cardLabel}>
-            Feedback Rp {totalFeedbackFee.toLocaleString('id-ID')} + Extra {extraHours.toFixed(1)} jam Rp {extraHoursFee.toLocaleString('id-ID')}
+          <div style={styles.cardValue}>
+            {totalParticipants.toLocaleString('id-ID')} <span style={styles.valueUnit}>Orang</span>
           </div>
+          <div style={styles.cardLabel}>Dari {uniqueInstansi} instansi berbeda</div>
         </div>
       </div>
 
@@ -560,12 +559,6 @@ export default function Dashboard() {
                         {s.feedback_score || '-'}
                       </span>
                     </div>
-                    <div style={styles.sessionCardStat}>
-                      <span style={styles.sessionCardStatLabel}>Fee</span>
-                      <span style={styles.sessionCardStatValue}>
-                        {s.feedback_fee > 0 ? `Rp ${Number(s.feedback_fee).toLocaleString('id-ID')}` : '-'}
-                      </span>
-                    </div>
                   </div>
                 </Link>
               ))
@@ -585,7 +578,6 @@ export default function Dashboard() {
                 <th style={styles.th}>Jam</th>
                 <th style={styles.th}>Siswa</th>
                 <th style={styles.th}>Feedback</th>
-                <th style={styles.th}>Feedback Fee</th>
               </tr>
             </thead>
             <tbody>
@@ -620,14 +612,11 @@ export default function Dashboard() {
                         {s.feedback_score || '-'}
                       </span>
                     </td>
-                    <td style={styles.tdFee}>
-                      {s.feedback_fee > 0 ? `Rp ${Number(s.feedback_fee).toLocaleString('id-ID')}` : '-'}
-                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} style={styles.emptyCell}>Tidak ada riwayat mengajar yang cocok dengan filter Anda.</td>
+                  <td colSpan={7} style={styles.emptyCell}>Tidak ada riwayat mengajar yang cocok dengan filter Anda.</td>
                 </tr>
               )}
             </tbody>
@@ -858,7 +847,7 @@ const styles = {
   },
   sessionCardStats: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
+    gridTemplateColumns: 'repeat(3, 1fr)',
     gap: '8px',
     marginTop: '14px',
     paddingTop: '12px',
@@ -1078,12 +1067,6 @@ const styles = {
     padding: '12px 16px',
     textAlign: 'right' as const,
     color: 'var(--text-muted)',
-  },
-  tdFee: {
-    padding: '12px 16px',
-    textAlign: 'right' as const,
-    fontWeight: 500,
-    color: 'var(--foreground)',
   },
   badge: {
     padding: '4px 8px',
