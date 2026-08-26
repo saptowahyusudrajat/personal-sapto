@@ -27,6 +27,11 @@ export async function POST(request: NextRequest) {
           temperature: parseFloat(temperature),
           humidity: parseFloat(humidity),
           timestamp: parseInt(timestamp),
+          rssi: body.rssi || null,
+          uptime: body.uptime || null,
+          reconnect_count: body.reconnect_count || null,
+          ping_latency: body.ping_latency || null,
+          free_heap: body.free_heap || null,
         },
       ])
       .select();
