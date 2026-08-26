@@ -131,6 +131,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <Link href="/fee" style={navLinkStyle('/fee')}>
               {isNarrow ? 'Fee' : 'Rekap Fee'}
             </Link>
+            <Link href="/sensor" style={navLinkStyle('/sensor')}>
+              {isNarrow ? 'Sensor' : 'Monitoring Sensor'}
+            </Link>
             {themeToggle}
             <button type="button" onClick={handleLogout} style={styles.logoutBtn} title={email}>
               <LogOut size={18} />
