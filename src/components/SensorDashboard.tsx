@@ -58,7 +58,14 @@ export default function SensorDashboard() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+
+    // Auto-refresh setiap 10 detik
+    const interval = setInterval(() => {
+      fetchData();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [days, useCustomRange, startDate, endDate]);
 
   const handleDaysChange = (newDays: number) => {
     setDays(newDays);
