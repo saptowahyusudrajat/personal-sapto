@@ -1,7 +1,7 @@
-﻿'use client';
+'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Thermometer, Droplets, Calendar } from 'lucide-react';
+import { Thermometer, Droplets } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface SensorReading {
@@ -10,14 +10,12 @@ interface SensorReading {
   temperature: number;
   humidity: number;
   timestamp: number;
-  created_at: string;
 }
 
 interface ChartData {
   time: string;
   temp: number;
   humidity: number;
-  timestamp: number;
 }
 
 export default function SensorDashboard() {
@@ -25,8 +23,8 @@ export default function SensorDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [days, setDays] = useState(7);
-  const [startDate, setStartDate] = useState(');
-  const [endDate, setEndDate] = useState(');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [useCustomRange, setUseCustomRange] = useState(false);
 
   const latestReading = chartData.length > 0 ? chartData[chartData.length - 1] : null;
@@ -34,34 +32,22 @@ export default function SensorDashboard() {
   const fetchData = async (newDays?: number, custom?: boolean) => {
     setLoading(true);
     setError(null);
-
     try {
       let url = '/api/sensor';
-
       if (custom && startDate && endDate) {
         url += `?start_date=${startDate}&end_date=${endDate}`;
       } else {
         const daysToFetch = newDays || days;
         url += `?days=${daysToFetch}`;
       }
-
       const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error('Failed to fetch data');
-      }
-
+      if (!res.ok) throw new Error('Failed to fetch data');
       const { data } = await res.json();
-
       const formatted = data.map((item: SensorReading) => ({
-        time: new Date(item.timestamp * 1000).toLocaleTimeString('id-ID', {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
+        time: new Date(item.timestamp * 1000).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
         temp: item.temperature,
         humidity: item.humidity,
-        timestamp: item.timestamp,
       }));
-
       setChartData(formatted);
     } catch (err: any) {
       setError(err.message || 'Error fetching data');
@@ -81,96 +67,55 @@ export default function SensorDashboard() {
   };
 
   const handleCustomRange = () => {
-    if (startDate && endDate) {
-      fetchData(undefined, true);
-    }
+    if (startDate && endDate) fetchData(undefined, true);
   };
 
-  const tempStats = chartData.length > 0
-    ? {
-        min: Math.min(...chartData.map((d) => d.temp)),
-        max: Math.max(...chartData.map((d) => d.temp)),
-        avg: (chartData.reduce((sum, d) => sum + d.temp, 0) / chartData.length).toFixed(1),
-      }
-    : null;
+  const tempStats = chartData.length > 0 ? {
+    min: Math.min(...chartData.map(d => d.temp)),
+    max: Math.max(...chartData.map(d => d.temp)),
+    avg: (chartData.reduce((sum, d) => sum + d.temp, 0) / chartData.length).toFixed(1),
+  } : null;
 
-  const humidityStats = chartData.length > 0
-    ? {
-        min: Math.min(...chartData.map((d) => d.humidity)),
-        max: Math.max(...chartData.map((d) => d.humidity)),
-        avg: (chartData.reduce((sum, d) => sum + d.humidity, 0) / chartData.length).toFixed(1),
-      }
-    : null;
+  const humidityStats = chartData.length > 0 ? {
+    min: Math.min(...chartData.map(d => d.humidity)),
+    max: Math.max(...chartData.map(d => d.humidity)),
+    avg: (chartData.reduce((sum, d) => sum + d.humidity, 0) / chartData.length).toFixed(1),
+  } : null;
 
   return (
     <div style={styles.container}>
       <div style={styles.header}>
         <h1 style={styles.title}>Monitoring Suhu & Kelembaban</h1>
-        {latestReading && (
-          <div style={styles.lastUpdate}>
-            Updated: {new Date(latestReading.timestamp * 1000).toLocaleString('id-ID')}
-          </div>
-        )}
+        {latestReading && <div style={styles.lastUpdate}>Updated: {new Date().toLocaleString('id-ID')}</div>}
       </div>
-
       {error && <div style={styles.errorBox}>{error}</div>}
-
-      {/* Filter Controls */}
       <div style={styles.filterBox}>
         <div style={styles.filterGroup}>
           <label style={styles.label}>Quick Range:</label>
           <div style={styles.buttonGroup}>
             {[7, 14, 30, 90].map((d) => (
-              <button
-                key={d}
-                onClick={() => handleDaysChange(d)}
-                style={{
-                  ...styles.filterButton,
-                  ...(days === d && !useCustomRange ? styles.filterButtonActive : {}),
-                }}
-              >
+              <button key={d} onClick={() => handleDaysChange(d)} style={{ ...styles.filterButton, ...(days === d && !useCustomRange ? styles.filterButtonActive : {}) }}>
                 {d} hari
               </button>
             ))}
           </div>
         </div>
-
         <div style={styles.filterGroup}>
           <label style={styles.label}>Custom Range:</label>
           <div style={styles.dateInputGroup}>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              style={styles.dateInput}
-            />
+            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={styles.dateInput} />
             <span style={styles.toLabel}>to</span>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              style={styles.dateInput}
-            />
-            <button
-              onClick={handleCustomRange}
-              style={{
-                ...styles.filterButton,
-                ...(useCustomRange ? styles.filterButtonActive : {}),
-              }}
-            >
-              Filter
-            </button>
+            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={styles.dateInput} />
+            <button onClick={handleCustomRange} style={{ ...styles.filterButton, ...(useCustomRange ? styles.filterButtonActive : {}) }}>Filter</button>
           </div>
         </div>
       </div>
-
       {loading ? (
         <div style={styles.loading}>Loading data...</div>
       ) : chartData.length === 0 ? (
         <div style={styles.noData}>No data available</div>
       ) : (
         <>
-          {/* Temperature Chart */}
           <div style={styles.card}>
             <div style={styles.cardHeader}>
               <Thermometer size={20} color="#f59e0b" />
@@ -184,23 +129,15 @@ export default function SensorDashboard() {
               </div>
             )}
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" />
-                <XAxis dataKey="time" stroke="var(--text-muted)" />
-                <YAxis stroke="var(--text-muted)" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'var(--card-bg)',
-                    border: '1px solid var(--card-border)',
-                  }}
-                  formatter={(value: any) => value.toFixed(1)}
-                />
-                <Line type="monotone" dataKey="temp" stroke="#f59e0b" dot={false} isAnimationActive={false} />
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="time" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="temp" stroke="#f59e0b" dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
-
-          {/* Humidity Chart */}
           <div style={styles.card}>
             <div style={styles.cardHeader}>
               <Droplets size={20} color="#10b981" />
@@ -214,18 +151,12 @@ export default function SensorDashboard() {
               </div>
             )}
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" />
-                <XAxis dataKey="time" stroke="var(--text-muted)" />
-                <YAxis stroke="var(--text-muted)" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'var(--card-bg)',
-                    border: '1px solid var(--card-border)',
-                  }}
-                  formatter={(value: any) => value.toFixed(0)}
-                />
-                <Line type="monotone" dataKey="humidity" stroke="#10b981" dot={false} isAnimationActive={false} />
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="time" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="humidity" stroke="#10b981" dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -236,128 +167,24 @@ export default function SensorDashboard() {
 }
 
 const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '24px',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: '24px',
-    fontWeight: 700,
-    color: 'var(--foreground)',
-    margin: 0,
-  },
-  lastUpdate: {
-    fontSize: '13px',
-    color: 'var(--text-muted)',
-  },
-  errorBox: {
-    padding: '12px 16px',
-    backgroundColor: '#fee2e2',
-    border: '1px solid #fecaca',
-    borderRadius: 'var(--radius)',
-    color: '#dc2626',
-    fontSize: '14px',
-  },
-  filterBox: {
-    backgroundColor: 'var(--card-bg)',
-    border: '1px solid var(--card-border)',
-    borderRadius: 'var(--radius)',
-    padding: '16px',
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '16px',
-  },
-  filterGroup: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    flexWrap: 'wrap' as const,
-  },
-  label: {
-    fontSize: '14px',
-    fontWeight: 600,
-    color: 'var(--text-muted)',
-    minWidth: '100px',
-  },
-  buttonGroup: {
-    display: 'flex',
-    gap: '8px',
-    flexWrap: 'wrap' as const,
-  },
-  filterButton: {
-    padding: '6px 12px',
-    fontSize: '14px',
-    fontWeight: 500,
-    backgroundColor: 'var(--primary-light)',
-    border: '1px solid var(--card-border)',
-    borderRadius: 'var(--radius)',
-    color: 'var(--foreground)',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-  },
-  filterButtonActive: {
-    backgroundColor: 'var(--primary)',
-    color: 'white',
-    borderColor: 'var(--primary)',
-  },
-  dateInputGroup: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    flexWrap: 'wrap' as const,
-  },
-  dateInput: {
-    padding: '6px 10px',
-    fontSize: '14px',
-    border: '1px solid var(--card-border)',
-    borderRadius: 'var(--radius)',
-    backgroundColor: 'var(--card-bg)',
-    color: 'var(--foreground)',
-  },
-  toLabel: {
-    fontSize: '14px',
-    color: 'var(--text-muted)',
-  },
-  loading: {
-    textAlign: 'center' as const,
-    padding: '40px 20px',
-    color: 'var(--text-muted)',
-  },
-  noData: {
-    textAlign: 'center' as const,
-    padding: '40px 20px',
-    color: 'var(--text-muted)',
-  },
-  card: {
-    backgroundColor: 'var(--card-bg)',
-    border: '1px solid var(--card-border)',
-    borderRadius: 'var(--radius)',
-    padding: '20px',
-  },
-  cardHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    marginBottom: '12px',
-  },
-  cardTitle: {
-    fontSize: '16px',
-    fontWeight: 600,
-    color: 'var(--foreground)',
-    margin: 0,
-  },
-  stats: {
-    display: 'flex',
-    gap: '16px',
-    marginBottom: '16px',
-    fontSize: '13px',
-    color: 'var(--text-muted)',
-    flexWrap: 'wrap' as const,
-  },
+  container: { display: 'flex' as const, flexDirection: 'column' as const, gap: '24px' },
+  header: { display: 'flex' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
+  title: { fontSize: '24px', fontWeight: 700, color: 'var(--foreground)', margin: 0 },
+  lastUpdate: { fontSize: '13px', color: 'var(--text-muted)' },
+  errorBox: { padding: '12px 16px', backgroundColor: '#fee2e2', border: '1px solid #fecaca', borderRadius: 'var(--radius)', color: '#dc2626', fontSize: '14px' },
+  filterBox: { backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius)', padding: '16px', display: 'flex' as const, flexDirection: 'column' as const, gap: '16px' },
+  filterGroup: { display: 'flex' as const, alignItems: 'center' as const, gap: '12px', flexWrap: 'wrap' as const },
+  label: { fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)', minWidth: '100px' },
+  buttonGroup: { display: 'flex' as const, gap: '8px', flexWrap: 'wrap' as const },
+  filterButton: { padding: '6px 12px', fontSize: '14px', fontWeight: 500, backgroundColor: 'var(--primary-light)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius)', color: 'var(--foreground)', cursor: 'pointer' },
+  filterButtonActive: { backgroundColor: 'var(--primary)', color: 'white', borderColor: 'var(--primary)' },
+  dateInputGroup: { display: 'flex' as const, alignItems: 'center' as const, gap: '8px', flexWrap: 'wrap' as const },
+  dateInput: { padding: '6px 10px', fontSize: '14px', border: '1px solid var(--card-border)', borderRadius: 'var(--radius)', backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' },
+  toLabel: { fontSize: '14px', color: 'var(--text-muted)' },
+  loading: { textAlign: 'center' as const, padding: '40px 20px', color: 'var(--text-muted)' },
+  noData: { textAlign: 'center' as const, padding: '40px 20px', color: 'var(--text-muted)' },
+  card: { backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius)', padding: '20px' },
+  cardHeader: { display: 'flex' as const, alignItems: 'center' as const, gap: '12px', marginBottom: '12px' },
+  cardTitle: { fontSize: '16px', fontWeight: 600, color: 'var(--foreground)', margin: 0 },
+  stats: { display: 'flex' as const, gap: '16px', marginBottom: '16px', fontSize: '13px', color: 'var(--text-muted)', flexWrap: 'wrap' as const },
 };
