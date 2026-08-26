@@ -96,6 +96,29 @@ export default function SensorDashboard() {
         {latestReading && <div style={styles.lastUpdate}>Updated: {new Date().toLocaleString('id-ID')}</div>}
       </div>
       {error && <div style={styles.errorBox}>{error}</div>}
+
+      {latestReading && (
+        <div style={styles.realtimeBox}>
+          <div style={styles.realtimeCard}>
+            <div style={styles.realtimeHeader}>
+              <Thermometer size={24} color="#f59e0b" />
+              <span style={styles.realtimeLabel}>Suhu Real-time</span>
+            </div>
+            <div style={styles.realtimeValue}>{latestReading.temp.toFixed(1)}°C</div>
+            <div style={styles.realtimeTime}>Updated: {new Date().toLocaleTimeString('id-ID')}</div>
+          </div>
+
+          <div style={styles.realtimeCard}>
+            <div style={styles.realtimeHeader}>
+              <Droplets size={24} color="#10b981" />
+              <span style={styles.realtimeLabel}>Kelembaban Real-time</span>
+            </div>
+            <div style={styles.realtimeValue}>{latestReading.humidity.toFixed(0)}%</div>
+            <div style={styles.realtimeTime}>Updated: {new Date().toLocaleTimeString('id-ID')}</div>
+          </div>
+        </div>
+      )}
+
       <div style={styles.filterBox}>
         <div style={styles.filterGroup}>
           <label style={styles.label}>Quick Range:</label>
@@ -178,6 +201,12 @@ const styles = {
   header: { display: 'flex' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   title: { fontSize: '24px', fontWeight: 700, color: 'var(--foreground)', margin: 0 },
   lastUpdate: { fontSize: '13px', color: 'var(--text-muted)' },
+  realtimeBox: { display: 'grid' as const, gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' },
+  realtimeCard: { backgroundColor: 'var(--card-bg)', border: '2px solid var(--primary-light)', borderRadius: 'var(--radius)', padding: '24px', textAlign: 'center' as const },
+  realtimeHeader: { display: 'flex' as const, alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '16px' },
+  realtimeLabel: { fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)' },
+  realtimeValue: { fontSize: '48px', fontWeight: 700, color: 'var(--foreground)', marginBottom: '8px' },
+  realtimeTime: { fontSize: '12px', color: 'var(--text-muted)' },
   errorBox: { padding: '12px 16px', backgroundColor: '#fee2e2', border: '1px solid #fecaca', borderRadius: 'var(--radius)', color: '#dc2626', fontSize: '14px' },
   filterBox: { backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius)', padding: '16px', display: 'flex' as const, flexDirection: 'column' as const, gap: '16px' },
   filterGroup: { display: 'flex' as const, alignItems: 'center' as const, gap: '12px', flexWrap: 'wrap' as const },
