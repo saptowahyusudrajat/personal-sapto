@@ -25,8 +25,8 @@ export default function SensorDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [days, setDays] = useState(7);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(');
+  const [endDate, setEndDate] = useState(');
   const [useCustomRange, setUseCustomRange] = useState(false);
 
   const latestReading = chartData.length > 0 ? chartData[chartData.length - 1] : null;
@@ -53,9 +53,9 @@ export default function SensorDashboard() {
       const { data } = await res.json();
 
       const formatted = data.map((item: SensorReading) => ({
-        time: new Date(item.timestamp * 1000).toLocaleTimeString(''id-ID'', {
-          hour: ''2-digit'',
-          minute: ''2-digit'',
+        time: new Date(item.timestamp * 1000).toLocaleTimeString('id-ID', {
+          hour: '2-digit',
+          minute: '2-digit',
         }),
         temp: item.temperature,
         humidity: item.humidity,
@@ -64,7 +64,7 @@ export default function SensorDashboard() {
 
       setChartData(formatted);
     } catch (err: any) {
-      setError(err.message || ''Error fetching data'');
+      setError(err.message || 'Error fetching data');
     } finally {
       setLoading(false);
     }
@@ -108,7 +108,7 @@ export default function SensorDashboard() {
         <h1 style={styles.title}>Monitoring Suhu & Kelembaban</h1>
         {latestReading && (
           <div style={styles.lastUpdate}>
-            Updated: {new Date(latestReading.timestamp * 1000).toLocaleString(''id-ID'')}
+            Updated: {new Date(latestReading.timestamp * 1000).toLocaleString('id-ID')}
           </div>
         )}
       </div>
@@ -190,8 +190,8 @@ export default function SensorDashboard() {
                 <YAxis stroke="var(--text-muted)" />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: ''var(--card-bg)'',
-                    border: ''1px solid var(--card-border)'',
+                    backgroundColor: 'var(--card-bg)',
+                    border: '1px solid var(--card-border)',
                   }}
                   formatter={(value: any) => value.toFixed(1)}
                 />
@@ -220,8 +220,8 @@ export default function SensorDashboard() {
                 <YAxis stroke="var(--text-muted)" />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: ''var(--card-bg)'',
-                    border: ''1px solid var(--card-border)'',
+                    backgroundColor: 'var(--card-bg)',
+                    border: '1px solid var(--card-border)',
                   }}
                   formatter={(value: any) => value.toFixed(0)}
                 />
@@ -237,127 +237,127 @@ export default function SensorDashboard() {
 
 const styles = {
   container: {
-    display: ''flex'',
-    flexDirection: ''column'' as const,
-    gap: ''24px'',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '24px',
   },
   header: {
-    display: ''flex'',
-    justifyContent: ''space-between'',
-    alignItems: ''center'',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
-    fontSize: ''24px'',
+    fontSize: '24px',
     fontWeight: 700,
-    color: ''var(--foreground)'',
+    color: 'var(--foreground)',
     margin: 0,
   },
   lastUpdate: {
-    fontSize: ''13px'',
-    color: ''var(--text-muted)'',
+    fontSize: '13px',
+    color: 'var(--text-muted)',
   },
   errorBox: {
-    padding: ''12px 16px'',
-    backgroundColor: ''#fee2e2'',
-    border: ''1px solid #fecaca'',
-    borderRadius: ''var(--radius)'',
-    color: ''#dc2626'',
-    fontSize: ''14px'',
+    padding: '12px 16px',
+    backgroundColor: '#fee2e2',
+    border: '1px solid #fecaca',
+    borderRadius: 'var(--radius)',
+    color: '#dc2626',
+    fontSize: '14px',
   },
   filterBox: {
-    backgroundColor: ''var(--card-bg)'',
-    border: ''1px solid var(--card-border)'',
-    borderRadius: ''var(--radius)'',
-    padding: ''16px'',
-    display: ''flex'',
-    flexDirection: ''column'' as const,
-    gap: ''16px'',
+    backgroundColor: 'var(--card-bg)',
+    border: '1px solid var(--card-border)',
+    borderRadius: 'var(--radius)',
+    padding: '16px',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '16px',
   },
   filterGroup: {
-    display: ''flex'',
-    alignItems: ''center'',
-    gap: ''12px'',
-    flexWrap: ''wrap'' as const,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    flexWrap: 'wrap' as const,
   },
   label: {
-    fontSize: ''14px'',
+    fontSize: '14px',
     fontWeight: 600,
-    color: ''var(--text-muted)'',
-    minWidth: ''100px'',
+    color: 'var(--text-muted)',
+    minWidth: '100px',
   },
   buttonGroup: {
-    display: ''flex'',
-    gap: ''8px'',
-    flexWrap: ''wrap'' as const,
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap' as const,
   },
   filterButton: {
-    padding: ''6px 12px'',
-    fontSize: ''14px'',
+    padding: '6px 12px',
+    fontSize: '14px',
     fontWeight: 500,
-    backgroundColor: ''var(--primary-light)'',
-    border: ''1px solid var(--card-border)'',
-    borderRadius: ''var(--radius)'',
-    color: ''var(--foreground)'',
-    cursor: ''pointer'',
-    transition: ''all 0.2s'',
+    backgroundColor: 'var(--primary-light)',
+    border: '1px solid var(--card-border)',
+    borderRadius: 'var(--radius)',
+    color: 'var(--foreground)',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
   },
   filterButtonActive: {
-    backgroundColor: ''var(--primary)'',
-    color: ''white'',
-    borderColor: ''var(--primary)'',
+    backgroundColor: 'var(--primary)',
+    color: 'white',
+    borderColor: 'var(--primary)',
   },
   dateInputGroup: {
-    display: ''flex'',
-    alignItems: ''center'',
-    gap: ''8px'',
-    flexWrap: ''wrap'' as const,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    flexWrap: 'wrap' as const,
   },
   dateInput: {
-    padding: ''6px 10px'',
-    fontSize: ''14px'',
-    border: ''1px solid var(--card-border)'',
-    borderRadius: ''var(--radius)'',
-    backgroundColor: ''var(--card-bg)'',
-    color: ''var(--foreground)'',
+    padding: '6px 10px',
+    fontSize: '14px',
+    border: '1px solid var(--card-border)',
+    borderRadius: 'var(--radius)',
+    backgroundColor: 'var(--card-bg)',
+    color: 'var(--foreground)',
   },
   toLabel: {
-    fontSize: ''14px'',
-    color: ''var(--text-muted)'',
+    fontSize: '14px',
+    color: 'var(--text-muted)',
   },
   loading: {
-    textAlign: ''center'' as const,
-    padding: ''40px 20px'',
-    color: ''var(--text-muted)'',
+    textAlign: 'center' as const,
+    padding: '40px 20px',
+    color: 'var(--text-muted)',
   },
   noData: {
-    textAlign: ''center'' as const,
-    padding: ''40px 20px'',
-    color: ''var(--text-muted)'',
+    textAlign: 'center' as const,
+    padding: '40px 20px',
+    color: 'var(--text-muted)',
   },
   card: {
-    backgroundColor: ''var(--card-bg)'',
-    border: ''1px solid var(--card-border)'',
-    borderRadius: ''var(--radius)'',
-    padding: ''20px'',
+    backgroundColor: 'var(--card-bg)',
+    border: '1px solid var(--card-border)',
+    borderRadius: 'var(--radius)',
+    padding: '20px',
   },
   cardHeader: {
-    display: ''flex'',
-    alignItems: ''center'',
-    gap: ''12px'',
-    marginBottom: ''12px'',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '12px',
   },
   cardTitle: {
-    fontSize: ''16px'',
+    fontSize: '16px',
     fontWeight: 600,
-    color: ''var(--foreground)'',
+    color: 'var(--foreground)',
     margin: 0,
   },
   stats: {
-    display: ''flex'',
-    gap: ''16px'',
-    marginBottom: ''16px'',
-    fontSize: ''13px'',
-    color: ''var(--text-muted)'',
-    flexWrap: ''wrap'' as const,
+    display: 'flex',
+    gap: '16px',
+    marginBottom: '16px',
+    fontSize: '13px',
+    color: 'var(--text-muted)',
+    flexWrap: 'wrap' as const,
   },
 };
