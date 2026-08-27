@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
       query = query.gte('timestamp', pastTime);
     }
 
-    query = query.order('timestamp', { ascending: true });
+    query = query.order('timestamp', { ascending: true }).range(0, 100000);
 
     const { data, error } = await query;
 
