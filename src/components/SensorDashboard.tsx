@@ -133,6 +133,14 @@ export default function SensorDashboard() {
             <div style={styles.realtimeValue}>{latestReading.humidity.toFixed(0)}%</div>
             <div style={styles.realtimeTime}>Sent: {new Date(latestReading.timestamp * 1000).toLocaleTimeString('id-ID')}</div>
           </div>
+
+          <div style={styles.realtimeCard}>
+            <div style={styles.realtimeHeader}>
+              <span style={styles.realtimeLabel}>Internet Speed</span>
+            </div>
+            <div style={styles.realtimeValue}>{(latestReading.speed_mbps ?? 0).toFixed(2)} Mbps</div>
+            <div style={styles.realtimeTime}>Last: {latestReading.speed_mbps ? new Date(latestReading.timestamp * 1000).toLocaleTimeString('id-ID') : 'N/A'}</div>
+          </div>
         </div>
       )}
 
