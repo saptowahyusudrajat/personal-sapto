@@ -111,7 +111,7 @@ export default function SensorDashboard() {
     if (!confirm('Really sure? All records will be permanently deleted!')) return;
 
     try {
-      const res = await fetch('/api/sensor/delete-all', { method: 'DELETE' });
+      const res = await fetch('/api/sensor?delete=all', { method: 'DELETE' });
       if (res.ok) {
         alert('✓ All data deleted!');
         fetchData();
