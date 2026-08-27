@@ -57,9 +57,10 @@ export async function DELETE(request: NextRequest) {
     const { error } = await supabase
       .from('sensor_readings')
       .delete()
-      .neq('id', 0);
+      .gt('id', 0);
 
     if (error) {
+      console.error('Supabase delete error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
