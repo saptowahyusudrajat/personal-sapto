@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
           uptime: body.uptime || null,
           reconnect_count: body.reconnect_count || null,
           ping_latency: body.ping_latency || null,
+          speed_mbps: body.speed_mbps || null,
           free_heap: body.free_heap || null,
         },
       ])
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get('start_date');
     const endDate = searchParams.get('end_date');
 
-    let query = supabase.from('sensor_readings').select('id,device_id,temperature,humidity,timestamp,created_at,rssi,uptime,reconnect_count,ping_latency,free_heap');
+    let query = supabase.from('sensor_readings').select('id,device_id,temperature,humidity,timestamp,created_at,rssi,uptime,reconnect_count,ping_latency,speed_mbps,free_heap');
 
     if (deviceId) {
       query = query.eq('device_id', deviceId);

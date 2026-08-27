@@ -14,6 +14,7 @@ interface SensorReading {
   ping_latency?: number | null;
   uptime?: number | null;
   reconnect_count?: number | null;
+  speed_mbps?: number | null;
 }
 
 interface ChartData {
@@ -25,6 +26,7 @@ interface ChartData {
   ping_latency?: number;
   uptime?: number;
   reconnect_count?: number;
+  speed_mbps?: number;
 }
 
 export default function SensorDashboard() {
@@ -61,6 +63,7 @@ export default function SensorDashboard() {
         ping_latency: item.ping_latency,
         uptime: item.uptime,
         reconnect_count: item.reconnect_count,
+        speed_mbps: item.speed_mbps,
       }));
       setChartData(formatted);
     } catch (err: any) {
@@ -230,6 +233,36 @@ export default function SensorDashboard() {
                 <YAxis />
                 <Tooltip />
                 <Line type="monotone" dataKey="humidity" stroke="#10b981" dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div style={styles.card}>
+            <div style={styles.cardHeader}>
+              <h2 style={styles.cardTitle}>Ping Latency (ms)</h2>
+            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="time" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="ping_latency" stroke="#f59e0b" dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div style={styles.card}>
+            <div style={styles.cardHeader}>
+              <h2 style={styles.cardTitle}>Network Speed (Mbps)</h2>
+            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="time" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="speed_mbps" stroke="#3b82f6" dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
