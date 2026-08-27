@@ -156,8 +156,8 @@ export default function SensorDashboard() {
               <div style={styles.networkGrid}>
                 <div style={styles.networkMetric}>
                   <div style={styles.metricLabel}>Signal Strength</div>
-                  <div style={styles.metricValue}>{latestReading.rssi || 'N/A'} dBm</div>
-                  <div style={{ ...styles.metricBar, width: `${Math.max(0, Math.min(100, (latestReading.rssi + 100) * 1.5))}%` }} />
+                  <div style={styles.metricValue}>{latestReading.rssi ?? 'N/A'} dBm</div>
+                  <div style={{ ...styles.metricBar, width: latestReading.rssi ? `${Math.max(0, Math.min(100, (latestReading.rssi + 100) * 1.5))}%` : '0%' }} />
                 </div>
                 <div style={styles.networkMetric}>
                   <div style={styles.metricLabel}>Ping Latency</div>
