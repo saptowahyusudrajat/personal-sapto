@@ -105,7 +105,7 @@ export default function SensorDashboard() {
     <div style={styles.container}>
       <div style={styles.header}>
         <h1 style={styles.title}>Monitoring Suhu & Kelembaban</h1>
-        {latestReading && <div style={styles.lastUpdate}>Updated: {new Date().toLocaleString('id-ID')}</div>}
+        {latestReading && <div style={styles.lastUpdate}>Last Update: {new Date(latestReading.timestamp * 1000).toLocaleString('id-ID')}</div>}
       </div>
       {error && <div style={styles.errorBox}>{error}</div>}
 
@@ -117,7 +117,7 @@ export default function SensorDashboard() {
               <span style={styles.realtimeLabel}>Suhu Real-time</span>
             </div>
             <div style={styles.realtimeValue}>{latestReading.temp.toFixed(1)}°C</div>
-            <div style={styles.realtimeTime}>Updated: {new Date().toLocaleTimeString('id-ID')}</div>
+            <div style={styles.realtimeTime}>Sent: {new Date(latestReading.timestamp * 1000).toLocaleTimeString('id-ID')}</div>
           </div>
 
           <div style={styles.realtimeCard}>
@@ -126,7 +126,7 @@ export default function SensorDashboard() {
               <span style={styles.realtimeLabel}>Kelembaban Real-time</span>
             </div>
             <div style={styles.realtimeValue}>{latestReading.humidity.toFixed(0)}%</div>
-            <div style={styles.realtimeTime}>Updated: {new Date().toLocaleTimeString('id-ID')}</div>
+            <div style={styles.realtimeTime}>Sent: {new Date(latestReading.timestamp * 1000).toLocaleTimeString('id-ID')}</div>
           </div>
         </div>
       )}
