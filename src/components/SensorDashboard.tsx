@@ -10,6 +10,10 @@ interface SensorReading {
   temperature: number;
   humidity: number;
   timestamp: number;
+  rssi?: number | null;
+  ping_latency?: number | null;
+  uptime?: number | null;
+  reconnect_count?: number | null;
 }
 
 interface ChartData {
@@ -51,6 +55,10 @@ export default function SensorDashboard() {
         time: new Date(item.timestamp * 1000).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
         temp: item.temperature,
         humidity: item.humidity,
+        rssi: item.rssi,
+        ping_latency: item.ping_latency,
+        uptime: item.uptime,
+        reconnect_count: item.reconnect_count,
       }));
       setChartData(formatted);
     } catch (err: any) {
