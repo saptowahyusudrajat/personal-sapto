@@ -106,11 +106,31 @@ export default function SensorDashboard() {
     avg: (chartData.reduce((sum, d) => sum + d.humidity, 0) / chartData.length).toFixed(1),
   } : null;
 
+  const handleDeleteAll = async () => {
+    if (!confirm('⚠️ Delete ALL data? This cannot be undone!')) return;
+    if (!confirm('Really sure? All records will be permanently deleted!')) return;
+
+    try {
+      const res = await fetch('/api/sensor/delete-all', { method: 'DELETE' });
+      if (res.ok) {
+        alert('✓ All data deleted!');
+        fetchData();
+      } else {
+        alert('✗ Error deleting data');
+      }
+    } catch (err) {
+      alert('✗ Error: ' + err);
+    }
+  };
+
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h1 style={styles.title}>Monitoring Suhu & Kelembaban</h1>
-        {latestReading && <div style={styles.lastUpdate}>Last Update: {new Date(latestReading.timestamp * 1000).toLocaleString('id-ID')}</div>}
+        <div>
+          <h1 style={styles.title}>Monitoring Suhu & Kelembaban</h1>
+          {latestReading && <div style={styles.lastUpdate}>Last Update: {new Date(latestReading.timestamp * 1000).toLocaleString('id-ID')}</div>}
+        </div>
+        <button onClick={handleDeleteAll} style={styles.deleteButton}>🗑️ Erase All</button>
       </div>
       {error && <div style={styles.errorBox}>{error}</div>}
 
@@ -282,7 +302,8 @@ export default function SensorDashboard() {
 
 const styles = {
   container: { display: 'flex' as const, flexDirection: 'column' as const, gap: '24px' },
-  header: { display: 'flex' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
+  header: { display: 'flex' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, gap: '16px' },
+  deleteButton: { padding: '8px 12px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 },
   title: { fontSize: '24px', fontWeight: 700, color: 'var(--foreground)', margin: 0 },
   lastUpdate: { fontSize: '13px', color: 'var(--text-muted)' },
   realtimeBox: { display: 'grid' as const, gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' },
