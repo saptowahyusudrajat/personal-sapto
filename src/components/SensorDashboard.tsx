@@ -16,6 +16,10 @@ interface ChartData {
   time: string;
   temp: number;
   humidity: number;
+  rssi?: number;
+  ping_latency?: number;
+  uptime?: number;
+  reconnect_count?: number;
 }
 
 export default function SensorDashboard() {
@@ -146,6 +150,35 @@ export default function SensorDashboard() {
         <div style={styles.noData}>No data available</div>
       ) : (
         <>
+          {latestReading && (
+            <div style={styles.networkCard}>
+              <h3 style={styles.networkTitle}>Network Health</h3>
+              <div style={styles.networkGrid}>
+                <div style={styles.networkMetric}>
+                  <div style={styles.metricLabel}>Signal Strength</div>
+                  <div style={styles.metricValue}>{latestReading.rssi || 'N/A'} dBm</div>
+                  <div style={{ ...styles.metricBar, width: `${Math.max(0, Math.min(100, (latestReading.rssi + 100) * 1.5))}%` }} />
+                </div>
+                <div style={styles.networkMetric}>
+                  <div style={styles.metricLabel}>Ping Latency</div>
+                  <div style={styles.metricValue}>{latestReading.ping_latency || 'N/A'} ms</div>
+                </div>
+                <div style={styles.networkMetric}>
+                  <div style={styles.metricLabel}>Uptime</div>
+                  <div style={styles.metricValue}>
+                    {latestReading.uptime ?
+                      `${Math.floor(latestReading.uptime / 3600)}h ${Math.floor((latestReading.uptime % 3600) / 60)}m`
+                      : 'N/A'}
+                  </div>
+                </div>
+                <div style={styles.networkMetric}>
+                  <div style={styles.metricLabel}>Reconnects</div>
+                  <div style={styles.metricValue}>{latestReading.reconnect_count ?? 'N/A'}</div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div style={styles.card}>
             <div style={styles.cardHeader}>
               <Thermometer size={20} color="#f59e0b" />
@@ -223,4 +256,11 @@ const styles = {
   cardHeader: { display: 'flex' as const, alignItems: 'center' as const, gap: '12px', marginBottom: '12px' },
   cardTitle: { fontSize: '16px', fontWeight: 600, color: 'var(--foreground)', margin: 0 },
   stats: { display: 'flex' as const, gap: '16px', marginBottom: '16px', fontSize: '13px', color: 'var(--text-muted)', flexWrap: 'wrap' as const },
+  networkCard: { backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius)', padding: '20px' },
+  networkTitle: { fontSize: '16px', fontWeight: 600, color: 'var(--foreground)', margin: '0 0 16px 0' },
+  networkGrid: { display: 'grid' as const, gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px' },
+  networkMetric: { padding: '12px', backgroundColor: 'var(--primary-light)', borderRadius: 'var(--radius)', textAlign: 'center' as const },
+  metricLabel: { fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' },
+  metricValue: { fontSize: '20px', fontWeight: 700, color: 'var(--foreground)', marginBottom: '8px' },
+  metricBar: { height: '4px', backgroundColor: '#10b981', borderRadius: '2px', transition: 'width 0.3s' },
 };
