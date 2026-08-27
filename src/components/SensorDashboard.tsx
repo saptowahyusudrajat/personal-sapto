@@ -20,6 +20,7 @@ interface ChartData {
   time: string;
   temp: number;
   humidity: number;
+  timestamp: number;
   rssi?: number;
   ping_latency?: number;
   uptime?: number;
@@ -55,6 +56,7 @@ export default function SensorDashboard() {
         time: new Date(item.timestamp * 1000).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
         temp: item.temperature,
         humidity: item.humidity,
+        timestamp: item.timestamp,
         rssi: item.rssi,
         ping_latency: item.ping_latency,
         uptime: item.uptime,
