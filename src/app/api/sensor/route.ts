@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get('start_date');
     const endDate = searchParams.get('end_date');
 
-    let query = supabase.from('sensor_readings').select('id,device_id,temperature,humidity,timestamp,created_at,rssi,uptime,reconnect_count,ping_latency,free_heap,connected_devices');
+    let query = supabase.from('sensor_readings').select('id,device_id,temperature,humidity,timestamp,created_at,rssi,uptime,reconnect_count,ping_latency,free_heap');
 
     if (deviceId) {
       query = query.eq('device_id', deviceId);
