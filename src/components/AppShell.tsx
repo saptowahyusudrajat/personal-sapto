@@ -10,7 +10,7 @@ import { useIsNarrow } from '@/components/useMediaQuery';
 
 type AuthStatus = 'loading' | 'authenticated' | 'anonymous';
 
-const PUBLIC_PATHS = ['/login'];
+const PUBLIC_PATHS = ['/login', '/monitoring'];
 
 /**
  * Membungkus seluruh halaman: memasang header/nav dan menjaga agar isi portal
@@ -26,6 +26,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [email, setEmail] = useState<string>('');
 
   const isPublicPath = PUBLIC_PATHS.includes(pathname);
+  const isLoginPath = pathname === '/login';
 
   useEffect(() => {
     let active = true;
@@ -51,10 +52,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     if (status === 'anonymous' && !isPublicPath) {
       router.replace('/login');
     }
-    if (status === 'authenticated' && isPublicPath) {
+    // Hanya halaman login yang mengalihkan pengguna yang sudah masuk; halaman
+    // publik lain (mis. /monitoring) tetap bisa dibuka siapa saja.
+    if (status === 'authenticated' && isLoginPath) {
       router.replace('/');
     }
-  }, [status, isPublicPath, router]);
+  }, [status, isPublicPath, isLoginPath, router]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -90,12 +93,41 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   );
 
   // Halaman login tampil tanpa header/nav
-  if (isPublicPath) {
+  if (isLoginPath) {
     return (
       <main style={styles.plainMain}>
         <div style={styles.floatingToggle}>{themeToggle}</div>
         {children}
       </main>
+    );
+  }
+
+  // Halaman publik lain (mis. /monitoring): header ringkas tanpa menu portal,
+  // supaya tombol tema tidak menimpa judul halaman di layar sempit.
+  if (isPublicPath) {
+    return (
+      <>
+        <header style={styles.header}>
+          <div style={isNarrow ? { ...styles.headerContainer, ...styles.headerContainerNarrow, flexWrap: 'nowrap' as const } : styles.headerContainer}>
+            <div style={styles.logo}>
+              <span style={isNarrow ? { ...styles.logoBadge, ...styles.logoBadgeNarrow } : styles.logoBadge}>
+                SSW
+              </span>
+              <div style={styles.logoText}>
+                <p style={styles.title}>Monitoring Ruangan</p>
+                {!isNarrow && <p style={styles.subtitle}>Sapto Wahyu Sudrajat</p>}
+              </div>
+            </div>
+            {themeToggle}
+          </div>
+        </header>
+        <main style={styles.main}>{children}</main>
+        <footer style={styles.footer}>
+          <div style={styles.footerContainer}>
+            <p>&copy; 2026 Sapto Wahyu Sudrajat. All Rights Reserved.</p>
+          </div>
+        </footer>
+      </>
     );
   }
 

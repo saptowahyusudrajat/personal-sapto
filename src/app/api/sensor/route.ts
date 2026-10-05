@@ -79,6 +79,8 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const deviceId = searchParams.get('device_id');
     const days = parseInt(searchParams.get('days') || '7');
+    // `hours` dipakai untuk rentang pendek seperti "1 jam" (lebih diutamakan dari `days`)
+    const hours = parseFloat(searchParams.get('hours') || '');
     const startDate = searchParams.get('start_date');
     const endDate = searchParams.get('end_date');
 
@@ -94,13 +96,15 @@ export async function GET(request: NextRequest) {
       const end = new Date(endDate).getTime() / 1000;
       query = query.gte('timestamp', start).lte('timestamp', end);
     } else {
-      // Default: last N days
+      // Default: last N hours / days
       const now = Math.floor(Date.now() / 1000);
-      const pastTime = now - days * 24 * 60 * 60;
-      query = query.gte('timestamp', pastTime);
+      const rangeSeconds = hours > 0 ? hours * 60 * 60 : days * 24 * 60 * 60;
+      query = query.gte('timestamp', now - rangeSeconds);
     }
 
-    query = query.order('timestamp', { ascending: true });
+    // Ambil yang terbaru dulu lalu dibalik: bila Supabase membatasi jumlah
+    // baris (max rows), yang terpotong adalah data lama, bukan data terbaru.
+    query = query.order('timestamp', { ascending: false });
 
     const { data, error } = await query;
 
@@ -108,7 +112,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json({ success: true, data: (data ?? []).reverse() });
   } catch (error: any) {
     console.error('API error:', error);
     return NextResponse.json(
